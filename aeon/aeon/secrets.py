@@ -40,3 +40,8 @@ class SecretManager:
             secret_path=secret_path
         )
         return {secret.secretKey: secret.secretValue for secret in raw.secrets}
+
+    def set_secrets(self):
+        """Set secrets as env vars."""
+        for k, v in self.get_secrets().items():
+            os.environ[k] = v

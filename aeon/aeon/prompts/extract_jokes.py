@@ -25,6 +25,10 @@ class Batch(BaseModel):
     )
 
 
+# TODO: maybe switch examples to a less toilety joke
+# TODO: add unfunny variant (currently does not match schema)
+# TODO: consider adding good variants? (Recall claude ciabatta jokes were decent, but if labeling
+# with cheaper models this likely won't work well)
 messages = [
     {
         "role": "developer",
