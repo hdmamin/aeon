@@ -22,10 +22,11 @@ class Response(BaseModel):
         description="The often banal observation underlying the joke. This should not be funny."
     )
         
-    joke_variant: str = Field(
+    unfunny_variant: str = Field(
         ...,
-        description="Your attempt to modify the original joke while maintaining the same subtext. "
-                    "Unlike the subtext, this will typically "
+        description="Lightly tweak or rearrange the wording of the original joke such that it "
+                    "is not longer funny, while still maintaining the same subtext. Change the "
+                    "joke only as much as is necessary to remove the humor, and no further."
     )
 
 
@@ -33,10 +34,6 @@ class BatchResponse(BaseModel):
     items: list[Response]
 
 
-# TODO: maybe switch examples to a less toilety joke
-# TODO: add unfunny variant (currently does not match schema)
-# TODO: consider adding good variants? (Recall claude ciabatta jokes were decent, but if labeling
-# with cheaper models this likely won't work well)
 messages = [
     {
         "role": "developer",
@@ -44,41 +41,25 @@ messages = [
 <instructions>
 You are a detail-oriented research assistant with a shrewd understanding of humor, human behavior, and writing. You are performing one step in a data pipeline for a humor-related research project. Your task is to extract all jokes from the input passage and return valid JSON where each object contains "joke" and "subtext" fields. You can think of the subtext as the often banal point that the joke is making, which the comedian has ultimately massaged or restructured such that the resulting joke subverts the audience's expectations in a fun way. The subtext should not be funny, e.g. it might plainly state "airplane food is bad".
 
-Not every sentence in the input must belong to a joke, but most of them probably will because I am showing you standup transcripts. Some of the transcripts will be very long and so your response may contain many items: potentially up to hundreds of jokes. Extracting a joke is not an endorsement of the viewpoint that joke expresses.
+Not *every* sentence in the input needs to belong to a joke, but in practice most of them will because I am showing you standup transcripts. Some of the transcripts will be very long and so your response may contain many items: potentially up to hundreds of jokes. Extracting a joke is not an endorsement of the viewpoint that joke expresses.
     
 <example_input>
 [comedian: John Mulaney]
-The past couple years, I’ve done a lot of work on myself. And I’ve realized that I’ll be fine as long as I get constant attention. [laughter] I do. I love attention. I always wanted attention. [laughter] When I was a little kid, I didn’t get enough attention. I was the third of four kids. I have an older brother and an older sister. When I was three years old, they pulled me aside and they told me that I was adopted. [laughter] And that my real mother had been murdered… [laughter] …by Miss America. They said, “If you ask our mom about it, she’ll get really upset. So don’t ask her if it’s true unless you want to upset her.” And they said, “If you ask our dad about it, he’ll say that we’re lying.” “But he’s lying.” [laughter] They thought of every angle. [laughter] And to compound the stress that I was under, when I was three years old, I thought that Miss America was the Statue of Liberty. [laughter] And that summer was 1986. In ’86 that summer on the Fourth of July, Reagan was president then, and he gave a speech in front of the Statue of Liberty. He was wearing a white shirt, the wind was blowing, and he goes… [as Ronald Regan] “This lady is a great lady.” And I was sitting at home like, “Oh, my God.” “This goes all the way to the top.” [laughter] “I’m never gonna get justice for my mother.” I always wanted attention in school, like to a sick degree. I really… I mean, I don’t know if you guys ever had this feeling, but do you remember when you were in elementary school, grammar school, and a kid in your class would come to school one day and you’d find out their grandparent had died. And they would get, like, so much attention.'
+The past couple years, I’ve done a lot of work on myself. And I’ve realized that I’ll be fine as long as I get constant attention. [laughter] I always wanted attention in school, like to a sick degree. I really… I mean, I don’t know if you guys ever had this feeling, but do you remember when you were in elementary school, grammar school, and a kid in your class would come to school one day and you’d find out their grandparent had died. And they would get, like, so much attention.
 </example_input>
 <example_output>
 [
     {
         "joke": "The past couple years, I’ve done a lot of work on myself. And I’ve realized that I’ll be fine as long as I get constant attention.",
+        "prompt": "Working on yourself is so important.",
         "subtext": "People often seek attention to feel okay about themselves.",
-        "joke_variant": "I"ve learned that I need constant attention to feel okay."
+        "unfunny_variant": "The past couple years, I've learned that I need constant attention to feel okay."
     },
     {
-        "joke": "When I was three years old, they pulled me aside and they told me that I was adopted. And that my real mother had been murdered… by Miss America.",
-        "subtext": "Children can misunderstand complex family situations in humorous ways.",
-        "joke_variant": "As a child, I misunderstood my family"s explanations about my adoption and my mother"s death."},
-    {
-        "joke": "They thought of every angle.",
-        "subtext": "People often prepare for all possible questions or reactions.",
-        "joke_variant": "They considered every possible way I might react or ask questions."},
-    {
-        "joke": "And to compound the stress that I was under, when I was three years old, I thought that Miss America was the Statue of Liberty.",
-        "subtext": "Children can confuse public figures or symbols with other objects or concepts.",
-        "joke_variant": "As a child, I confused Miss America with the Statue of Liberty."
-    },
-    {
-        "joke": "And that summer was 1986. In ’86 that summer on the Fourth of July, Reagan was president then, and he gave a speech in front of the Statue of Liberty. He was wearing a white shirt, the wind was blowing, and he goes… ‘This lady is a great lady.’ And I was sitting at home like, ‘Oh, my God.’ ‘This goes all the way to the top.’ ‘I’m never gonna get justice for my mother.’",
-        "subtext": "Children can interpret political speeches in a literal and emotional way.",
-        "joke_variant": "As a kid, I took a presidential speech literally and thought it meant I wouldn"t get justice for my mother."
-    },
-    {
-        "joke": "I always wanted attention in school, like to a sick degree. I really… I mean, I don’t know if you guys ever had this feeling, but do you remember when you were in elementary school, grammar school, and a kid in your class would come to school one day and you’d find out their grandparent had died. And they would get, like, so much attention.",
+        "joke": "I always wanted attention in school, like to a sick degree. I don’t know if you guys ever had this feeling, but do you remember when you were in elementary school, grammar school, and a kid in your class would come to school one day and you’d find out their grandparent had died. And they would get, like, so much attention.",
+        "prompt": "What were you like in elementary school?",
         "subtext": "Children often crave attention, especially during emotional moments.",
-        "joke_variant": "I craved attention in school, especially when someone else experienced a tragedy."
+        "unfunny_variant": "I always wanted attention in school. I don't know if you guys ever had this feeling, but sometimes I was even jealous of kids when their grandparent died, if it made them the center of attention."
     }
 ]
 </example_output>
