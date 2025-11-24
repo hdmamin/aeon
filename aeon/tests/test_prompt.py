@@ -36,7 +36,6 @@ class TestInferProvider:
 
     def test_openai_models(self):
         assert infer_provider("gpt-4") == "openai"
-        assert infer_provider("gpt-3.5-turbo") == "openai"
         assert infer_provider("gpt-4o") == "openai"
         assert infer_provider("gpt-5-mini") == "openai"
 

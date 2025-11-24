@@ -5,3 +5,7 @@ env:
 	chmod u+x bootstrap.sh && ./bootstrap.sh
 	uv venv --seed --python 3.12
 	uv sync
+
+test:
+	.venv/bin/pytest tests/
+
