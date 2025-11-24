@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(mkdir:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(source .venv/bin/activate)",
+      "Bash(make test:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
