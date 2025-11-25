@@ -7,18 +7,20 @@ from aeon import config
 from aeon.secrets import SecretManager
 
 
-def save_dataset(df: pd.DataFrame, name: str, upload_to_hub: bool = True) -> None:
+def save_dataset(df: pd.DataFrame, name: str, upload_to_hub: bool = True, file_suffix: str = "pq") -> None:
     """Save a dataset to local parquet in {project_root}/data/datasets and optionally create a 
     Huggingface Hub dataset in my hmamin/aeon collection.
     """
-    out_dir = config.DATRA_DIR/f"datasets/{name}"
+    out_dir = config.DATA_DIR/f"datasets/{name}"
     os.makedirs(out_dir, exist_ok=True)
-    df.to_parquet(out_dir/"df.pq")
+    if file_suffix == "pq":
+        df.to_parquet(out_dir/"df.pq")
+    elif file_suffix == "h5":
+        df.to_hdf(out_dir/"df.pq", key="df")
+    else:
+        raise ValueError(f"Unsupported file_suffix: {file_suffix!r}")
 
-    if hub:
-        if not hub_token:
-            raise ValueError("hub_token must be provided when upload_to_hub is True.")
-
+    if upload_to_hub:
         secrets = SecretManager().get_secrets()
         login(secrets["HUGGINGFACE_TOKEN"])
         hf_api = HfApi()
