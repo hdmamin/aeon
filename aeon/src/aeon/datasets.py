@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 
+from datasets import Dataset
 from huggingface_hub import login, HfApi
 import pandas as pd
 
@@ -22,7 +23,9 @@ def save_dataset(
         If True and upload_to_hub is True, the resulting huggingface dataset will be made private.
         Note that this will disable their builtin dataset viewer in the UI.
     hf_kwargs : any
-        Forwarded to huggingface's add_collection_item method. E.g. exists_ok=True
+        Forwarded to huggingface's add_collection_item method. E.g. exists_ok=True (though note,
+        I realized this does not actually allow overwriting items, just determines whether an error
+        is raised)
     """
     if save_local:
         out_dir = config.DATA_DIR/f"datasets/{name}"
@@ -43,12 +46,16 @@ def save_dataset(
         hf_api = HfApi()
 
         repo_id = f"hmamin/{name}"
+        dataset = Dataset.from_pandas(df)
+        dataset.push_to_hub(repo_id)
+
         hf_api.add_collection_item(
             collection_slug="hmamin/aeon",
             item_id=repo_id,
             item_type="dataset",
             **hf_kwargs
         )
+
         if private:
             hf_api.update_repo_visibility(
                 repo_id=repo_id,
