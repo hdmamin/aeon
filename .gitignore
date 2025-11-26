@@ -210,3 +210,7 @@ __marimo__/
 
 _notes/
 aeon/data/
+# Ignore .claude dirs in subdirectories but keep the one in project root because it has settings.
+**/.claude/
+!/.claude/
+!/.claude/**
