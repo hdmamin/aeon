@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 from huggingface_hub import login, HfApi
 import pandas as pd
@@ -7,8 +8,11 @@ from aeon import config
 from aeon.secrets import SecretManager
 
 
-def save_dataset(df: pd.DataFrame, name: str, save_local: bool = True, upload_to_hub: bool = True,
-                 file_suffix: str = "pq", private: bool = False, **hf_kwargs) -> None:
+def save_dataset(
+        df: pd.DataFrame, name: str, save_local: bool = True, upload_to_hub: bool = True,
+        file_suffix: str = "pq", private: bool = False,
+        infisical_api_key: Optional[str] = None, **hf_kwargs
+    ) -> None:
     """Save a dataset to local file in {project_root}/data/datasets and/or create a 
     Huggingface Hub dataset in my hmamin/aeon collection.
 
@@ -31,7 +35,10 @@ def save_dataset(df: pd.DataFrame, name: str, save_local: bool = True, upload_to
             raise ValueError(f"Unsupported file_suffix: {file_suffix!r}")
 
     if upload_to_hub:
-        secrets = SecretManager().get_secrets()
+        secret_manager = SecretManager(
+            client_secret=os.environ.get("INFISICAL_API_KEY", infisical_api_key)
+        )
+        secrets = secret_manager.get_secrets()
         login(secrets["HUGGINGFACE_TOKEN"])
         hf_api = HfApi()
 
