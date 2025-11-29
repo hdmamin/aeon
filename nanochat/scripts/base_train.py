@@ -62,6 +62,10 @@ sample_every = 2000 # every how many steps to sample from the model
 save_every = -1 # every how many steps to save model checkpoints (-1 = disable, and save only at the end of the run)
 # Output
 model_tag = "" # optionally override the model tag for the output checkpoint directory name
+# TODO: hdm testing, see how many total steps there are. Also consider specifying a list of steps
+# instead of a freq, like maybe we want steps [0, 100, 1_000, 10_000, 50_000, 100_000] or something
+# instead of uniformly spaced steps
+journal_freq = 10_000
 # now allow CLI to override the settings via the configurator lol
 config_keys = [k for k,v in globals().items() if not k.startswith('_') and isinstance(v, (int, float, bool, str))]
 exec(open(os.path.join('nanochat', 'configurator.py')).read()) # overrides from command line or config file
@@ -208,6 +212,13 @@ else:
     min_val_bpb = loop_state["min_val_bpb"]
     smooth_train_loss = loop_state["smooth_train_loss"]
     total_training_time = loop_state["total_training_time"]
+
+# -----------------------------------------------------------------------------
+# Callback handler (manages diary entries during training)
+
+# TODO hdm need to define this somewhere, undecided if that should be in nanochat or aeon.
+# whoops, may have complicated this a bit 
+callback_handler = CallbackHandler(mode="pretraining", step_freq=journal_frequency)
 
 # -----------------------------------------------------------------------------
 # Training loop
@@ -358,6 +369,9 @@ while True:
         if grad_clip_enabled:
             log_data["train/grad_norm"] = grad_norm
         wandb_run.log(log_data)
+        
+        # Journal entries!
+        callback_handler.run(step, model, tokenizer)
 
     # state update
     step += 1
