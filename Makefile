@@ -1,4 +1,4 @@
-.PHONY nanochat
+.PHONY: nanochat nb
 
 # Pull changes from karpathy's original nanochat repo.
 nanochat:
