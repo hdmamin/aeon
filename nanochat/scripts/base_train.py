@@ -218,7 +218,7 @@ else:
 
 # TODO hdm need to define this somewhere, undecided if that should be in nanochat or aeon.
 # whoops, may have complicated this a bit 
-callback_handler = CallbackHandler(mode="pretraining", step_freq=journal_frequency)
+callback_handler = CallbackHandler(stage="pretraining", step_freq=journal_frequency)
 
 # -----------------------------------------------------------------------------
 # Training loop
