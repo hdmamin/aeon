@@ -6,9 +6,9 @@ import time
 from aeon.logging import logger
 
 
-def timestamp() -> str:
-    """Format current timestamp as YYYY.MM.DD_HH.MM.SS."""
-    return datetime.now().strftime("%Y.%m.%d_%H.%M.%S")
+def timestamp(pattern: str = "%Y.%m.%d_%H.%M.%S") -> str:
+    """Format current timestamp, by default as YYYY.MM.DD_HH.MM.SS."""
+    return datetime.now().strftime(pattern)
 
 
 def uncommitted_changes() -> bool:

@@ -20,8 +20,8 @@ class CallbackHandler:
         stage: str,
         step_freq: Optional[int] = 10_000,
         step_indices: Optional[list[int]] = None,
-        temperature: Optional[float] = 1.0,
-        max_tokens: Optional[int] = 256, 
+        temperature: Optional[float] = 0.7, 
+        max_tokens: Optional[int] = 512, 
     ):
         if bool(step_freq) + bool(step_indices) != 1:
             raise ValueError("Exactly one of step_freq and step_indices must be non-null.")
@@ -84,7 +84,13 @@ class CallbackHandler:
             # supprot multi-turn chats during training - somewhat unclear how that would work
             # though.
 
-            kwargs = prompt.kwargs(**extras)
+            # Note that `step` should be in `extras` already.
+            kwargs = prompt.kwargs(
+                **extras,
+                datetime=timestamp("%B %-d, %Y %I:%M:%S %p"),
+                temperature=self.temperature,
+                max_tokens=self.max_tokens
+            )
             tokens = tokenizer(kwargs.pop("messages")[0]["content"])
             # TODO: maybe allow overriding these vals in init? And/or could consider using fixed
             # vals for max_tokens and temperature to simplify things?
