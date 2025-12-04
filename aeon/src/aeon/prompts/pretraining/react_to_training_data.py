@@ -18,4 +18,5 @@ next_sample: $next_sample
 
 kwargs = {
     "max_tokens": 256,
+    "model": "nanochat",
 }

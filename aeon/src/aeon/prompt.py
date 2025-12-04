@@ -37,6 +37,10 @@ class Prompt:
         "reasoning_effort": "minimal",
         "verbosity": "low",
     }
+    _default_kwargs_nanochat = {
+        "temperature": 0.7,
+        "max_tokens": 512,
+    }
     _unsupported_kwargs = {
         "model": {
             "gpt_5": {"logprobs", "top_logprobs", "temperature"},
@@ -55,6 +59,9 @@ class Prompt:
             Prompt name, corresponding to a python file in `aeon.prompts`.
         kwargs: dict
             API call kwargs that will override any defaults provided in the prompt file.
+            If you specify `model="nanochat"`, we will assume this prompt is being used in a
+            nanochat training run and the model param will be dropped (we will be using an existing
+            local torch model, not calling some API).
         """
         self.name = name
         self.prompt = importlib.import_module(f"aeon.prompts.{name}")
@@ -64,7 +71,7 @@ class Prompt:
                 f"No response_format specified for prompt {name}. We recommend providing one."
             )
 
-        self.provider = infer_provider(self.default_kwargs["model"])
+        self.provider = infer_provider(self.default_kwargs.get("model", None))
         unsupported = self._unsupported_kwargs["provider"].get(self.provider, set()) \
             & set(self.default_kwargs)
         if unsupported:
@@ -96,6 +103,9 @@ class Prompt:
             }
             if unsupported:
                 raise ValueError(f"gpt-5 should not specify these params: {unsupported}")
+        elif user_kwargs.get("model", "") == "nanochat":
+            default = self._default_kwargs_nanochat
+            user_kwargs.pop("model")
         else:
             defaults = self._default_kwargs
         return defaults | user_kwargs
@@ -113,6 +123,11 @@ class Prompt:
     def kwargs(self, **kwargs) -> dict:
         """Get all kwargs for api call, including rendered `messages`. User must provide kwargs for
         all variables in `self.variables` to insert into the last message.
+
+        Note: with nanochat 'provider' we will need to do some surgery on the result. Instead of a
+        list[dict] `messages` key, we will need to pass a list[int] `tokens` arg to the model.
+        In nanochat.callbacks we do this by grabbing the content of the first (should be only)
+        message in `messages`.
         """
         return {**self.default_kwargs, "messages": self.render(**kwargs)}
 
@@ -120,16 +135,17 @@ class Prompt:
         return f"{type(self).__name__}(name={self.name})"
 
 
-def infer_provider(model: str) -> str:
+def infer_provider(model: Optional[str]) -> str:
     """
     Infer LLM provider name based on model. For now we keep it simple and support just openai and
     openrouter (technically can call openai through openrouter but I believe it's more expensive).
     """
-    if "gpt" in model:
+    if model is None:
+        return "nanochat"
+    elif "gpt" in model:
         provider = "openai"
     else:
         provider = "openrouter"
-    # TODO: add more providers?
     return provider
 
 

@@ -12,4 +12,5 @@ $datetime
 ]
 
 kwargs = {
+    "model": "nanochat",
 }

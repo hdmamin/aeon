@@ -30,6 +30,7 @@ class CallbackHandler:
         self.prompts = self._load_prompts(stage)
         # TODO: check how many steps we might plausibly run in each stage.
         self.steps = set(step_indices or list(range(0, 10_000_000, step_freq)))
+        # TODO: not using these yet, need to pass to prompts when loading i guess
         self.temperature = temperature
         self.max_tokens = max_tokens
         # TODO: thinking we can make a new subdir for each run. Could name this based on launch time
@@ -102,11 +103,7 @@ class CallbackHandler:
             # on process 0? not sure
             os.makedirs(prompt_dir, exist_ok=True)
             with open(prompt_dir/f"{step}.txt", "a") as f:
-                for token in model.generate(
-                    tokens,
-                    kwargs.get("max_tokens", self.max_tokens),
-                    temperature=kwargs.get("temperature", self.temperature)
-                ):
+                for token in model.generate(tokens, **kwargs):
                     print0(token, end="")
                     f.write(token)
         print0("="*79 + "\nFINISHED DIARY ENTRIES\n" + "="*79 + "\n")
