@@ -1,4 +1,5 @@
 from collections import deque
+import random
 
 import torch
 import pyarrow.parquet as pq
@@ -19,12 +20,22 @@ def tokenizing_distributed_data_loader_with_state(B, T, split, tokenizer_threads
     The state_dict that is returned can be later passed into this function via `resume_state_dict` to approximately resume.
 
     Perfect state resumption is possible but would be a lot more bloated, probably not worth it atm.
+
+    yields
+        First 3 items are Karpathy-added. Fourth is a randomly chosen str from the current batch,
+        pre-tokenized, truncated to 1k chars. I use this so we can show the LLM what it's about to
+        be trained on or was just trained on during pretraining.
     """
     assert split in ["train", "val"], "split must be 'train' or 'val'"
 
     # infinite iterator over document batches (list of text strings)
     ddp, ddp_rank, ddp_local_rank, ddp_world_size = get_dist_info()
     def document_batches():
+        """
+        yields
+            tuple[list[str], tuple[int, int]]
+                First item contains a batch of tokenizer_batch_size strings.
+        """
         parquet_paths = list_parquet_files()
         parquet_paths = parquet_paths[:-1] if split == "train" else parquet_paths[-1:]
         resume_pq_idx = resume_state_dict["pq_idx"] if resume_state_dict is not None else 0
@@ -61,9 +72,12 @@ def tokenizing_distributed_data_loader_with_state(B, T, split, tokenizer_threads
     # scratch buffer holds the tokens for one iteration
     token_buffer = deque() # we stream tokens on the right and pop from the left
     while True:
+        doc_batches = []
+
         # Accumulate enough tokens for one iteration before yielding.
         while len(token_buffer) < needed_tokens:
             doc_batch, (pq_idx, rg_idx) = next(batches)
+            doc_batches.append(doc_batch)
             token_lists = tokenizer.encode(doc_batch, prepend=bos_token, num_threads=tokenizer_threads)
             for tokens in token_lists:
                 token_buffer.extend(tokens)
@@ -79,7 +93,7 @@ def tokenizing_distributed_data_loader_with_state(B, T, split, tokenizer_threads
         inputs = inputs_cpu.view(B, T).to(device=device, non_blocking=use_cuda_optimizations)
         targets = targets_cpu.view(B, T).to(device=device, non_blocking=use_cuda_optimizations)
         state_dict = {"pq_idx": pq_idx, "rg_idx": rg_idx} # we need this in case we wish to approximately resume training
-        yield inputs, targets, state_dict
+        yield inputs, targets, state_dict, random.choice(doc_batches)[:1_000]
 
 def tokenizing_distributed_data_loader(*args, **kwargs):
     # helper function that only emits the inputs/targets and not the state_dict
