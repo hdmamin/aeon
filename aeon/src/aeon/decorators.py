@@ -9,7 +9,10 @@ def tab_completion(func: Callable):
     Arguments
     ---------
     func : callable
-        A function that returns iterable[str].
+        A function that returns iterable[str]. Any periods in returned strings will be replaced by
+        a double underscore '__' in the attribute name (the value will remain unchanged) because
+        dots cannot be included in varnames. (We do not check for other invalid chars, we just do
+        this because importable paths are a known use case for tab_completion.)
 
     Examples
     --------
@@ -20,6 +23,6 @@ def tab_completion(func: Callable):
     values = func()
     def decorator(cls):
         for val in values:
-            setattr(cls, val.upper(), val)
+            setattr(cls, val.upper().replace(".", "__"), val)
         return cls
     return decorator

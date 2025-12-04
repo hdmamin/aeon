@@ -2,7 +2,7 @@ import importlib
 from openai import OpenAI
 from pathlib import Path
 from string import Template
-from typing import Callable
+from typing import Callable, Optional
 
 from aeon import prompts
 from aeon.decorators import tab_completion
@@ -104,7 +104,7 @@ class Prompt:
             if unsupported:
                 raise ValueError(f"gpt-5 should not specify these params: {unsupported}")
         elif user_kwargs.get("model", "") == "nanochat":
-            default = self._default_kwargs_nanochat
+            defaults = self._default_kwargs_nanochat
             user_kwargs.pop("model")
         else:
             defaults = self._default_kwargs
@@ -114,6 +114,10 @@ class Prompt:
         """Rendered `messages` for api call. User must pass in kwargs for all variables in
         `self.variables`. These will be inserted into the last message.
         """
+        missing_kwargs = set(self.variables) - set(kwargs)
+        if missing_kwargs:
+            raise KeyError(f"`render` expects the following additional kwarg(s): {missing_kwargs}")
+
         last_message = {
             "role": self.last_role,
             "content": self.last_template.substitute(**kwargs)
@@ -149,14 +153,34 @@ def infer_provider(model: Optional[str]) -> str:
     return provider
 
 
-def list_prompts() -> list[str]:
+# TODO rm
+# def list_prompts() -> list[str]:
+#     """Return aeon's available prompt names."""
+#     prompt_dir = Path(__file__).parent/"prompts"
+#     return [
+#         path.stem for path in prompt_dir.iterdir()
+#         if path.suffix == ".py"
+#         and not path.stem.startswith("_")  # internal lib files
+#     ]
+
+def list_prompts(prompt_dir = Path(__file__).parent/"prompts", _depth: int = 0) -> list[str]:
     """Return aeon's available prompt names."""
-    prompt_dir = Path(__file__).parent/"prompts"
-    return [
-        path.stem for path in prompt_dir.iterdir()
-        if path.suffix == ".py"
-        and not path.stem.startswith("_")  # internal lib files
-    ]
+    if _depth > 1:
+        raise NotImplementedError(
+            "`list_prompts` currently only supports one level of nested directories."
+            f"`_depth` arg should be <=1 but got {_depth}."
+        )
+        
+    res = []
+    for path in prompt_dir.iterdir():
+        if path.stem.startswith("_"):
+            continue
+        if path.is_file():
+            res.append(path.stem)
+        elif path.is_dir():
+            subdir_prompt_names = list_prompts(path, _depth=_depth + 1)
+            res.extend([f"{path.stem}.{name}" for name in subdir_prompt_names])
+    return res
 
 
 @tab_completion(list_prompts)

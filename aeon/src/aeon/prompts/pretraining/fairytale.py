@@ -28,15 +28,15 @@ A strong and decisive reversal, says your beautiful submissive girlfriend. You�
 You consider telling your beautiful submissive girlfriend that actually you really do want the pancakes, but you’re already tired of the game. You’re dimly aware that if you wanted you could tear her pink polka-dot dress to shreds, claw at her flawless flesh, fuck her right there on the floor, right in the middle of the chrome-and-cream diner, and she wouldn’t even struggle. Unless you wanted her to, and then she’d cry no, stop, please please stop. But then she’d go, how was that? Let me know if I can help you with any more groans of fear and despair. You could try smashing her head in with a baseball bat. Instead, you just stare at the menu. There’s no pancakes on there. No ham and eggs either. As far as you can make out, it says:
 
 BREAKFAST MEANU:
-Fast Cortes, and Houp Cral Smicters $4.78
-Cossy and Pinets (bl pceices) $5.00
-Cuticle Calery Bake $19
-Gan It Bat Chew $2.50
-Cerick Progle $4.50
-Peak Fras Feed est Chease Bregrinds Thing $1.50
-Rockfy Crest Lunger $2.50
-Medical Flesh Der Laty Cark $74
-Garela la Dick $4.90
+Fast Cortes, and Houp Cral Smicters $$4.78
+Cossy and Pinets (bl pceices) $$5.00
+Cuticle Calery Bake $$19
+Gan It Bat Chew $$2.50
+Cerick Progle $$4.50
+Peak Fras Feed est Chease Bregrinds Thing $$1.50
+Rockfy Crest Lunger $$2.50
+Medical Flesh Der Laty Cark $$74
+Garela la Dick $$4.90
 What happened is that one morning you woke up from a terrible dream about molluscs to find yourself gagging on something in the back of your throat. You retched for what felt like half an hour, until your face was slimy with sweat and spittle and tears. You thought you were dying but you couldn’t cry out past the thing in the back of your throat. Finally you managed to spit it out. It was covered in a thick coating of mucous and phlegm, but it was a small plastic spoon, containing all the microplastics that had accumulated in your brain. Tiny letters on the underside of the handle said THANK YOU FOR YOUR CUSTOM.
 
 Something similar must have happened to everyone else, because from that day on the world started to change. The immigrants went home, or maybe they were forced out, or maybe they were rounded up and shot, but they’re all gone now. The schools stopped teaching critical race theory and started teaching stoic philosophy, Roman military history, tax avoidance, and crypto. The women all signed a statement acknowledging that they would lose 90% of their eggs by the age of 30 and agreeing to stop being so choosy about who they’d allow to fertilise them. Slowly the world began to glow with a golden and slightly hazy light. It started to resemble a perfect shining image. But ever since you spat out the spoon, written language has stopped making sense. Not all of it: the stop signs on the street still say STOP and the sign above the charming little public library says LIIBRARB which is almost right, but all the books inside are unreadable. They’re crowded with dense black shapes that really do resemble letters, just not any letters in particular. All of them faintly smudged into the page, like crushed insects. The message on the spoon was the last coherent sentence you read; the world is splattered with dead mosquitoes now. It’s amazing how little the disappearance of all written language actually changed your life.
