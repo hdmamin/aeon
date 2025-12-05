@@ -102,19 +102,20 @@ class CallbackHandler:
             os.makedirs(prompt_dir, exist_ok=True)
 
             # Note that `step` should be in `extras` already.
-            kwargs = prompt.kwargs(
-                **extras,
+            resolved_kwargs = prompt.kwargs(
+                **kwargs,
+                step=step,
                 datetime=timestamp("%B %-d, %Y %I:%M:%S %p"),
                 temperature=prompt.default_kwargs["temperature"],
                 max_tokens=prompt.default_kwargs["max_tokens"]
             )
-            tokens = tokenizer(kwargs.pop("messages")[0]["content"], prepend="<|bos|>")
+            tokens = tokenizer(resolved_kwargs.pop("messages")[0]["content"], prepend="<|bos|>")
             with autocast_ctx:
                 # TODO: could consider multiple variants (configurable) per prompt?
                 # Or could try to save most generations
                 # for post-training (not post trianing run, but like after all training is done) and
                 # run on cheaper gpu - training time is valuable.
-                sample, _ = engine.generate_batch(tokens, num_samples=1, **kwargs)
+                sample, _ = engine.generate_batch(tokens, num_samples=1, **resolved_kwargs)
             decoded = tokenizer.decode(sample[0])
 
             print0(decoded)
