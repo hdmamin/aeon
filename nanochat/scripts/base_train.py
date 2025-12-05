@@ -371,7 +371,7 @@ while True:
         wandb_run.log(log_data)
         
         # Journal entries!
-        callback_handler.run(step, model, tokenizer, locals=locals())
+        callback_handler.run(**locals())
 
     # state update
     step += 1
