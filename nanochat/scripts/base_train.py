@@ -19,8 +19,10 @@ from contextlib import nullcontext
 import wandb
 import torch
 
+from aeon.utils import timestamp
 from nanochat.gpt import GPT, GPTConfig
 from nanochat.dataloader import tokenizing_distributed_data_loader, tokenizing_distributed_data_loader_with_state
+from nanochat.prompt_manager import PromptManager
 from nanochat.common import compute_init, compute_cleanup, print0, DummyWandb, print_banner, get_base_dir, autodetect_device_type
 from nanochat.tokenizer import get_tokenizer, get_token_bytes
 from nanochat.checkpoint_manager import save_checkpoint, load_checkpoint
@@ -61,7 +63,7 @@ core_metric_max_per_task = 500 # examples per task in estimating the core metric
 sample_every = 2000 # every how many steps to sample from the model
 save_every = -1 # every how many steps to save model checkpoints (-1 = disable, and save only at the end of the run)
 # Output
-model_tag = "" # optionally override the model tag for the output checkpoint directory name
+run_name = "" # provide some kind of name, ideally somewhat informative
 # TODO: hdm testing, see how many total steps there are. Also consider specifying a list of steps
 # instead of a freq, like maybe we want steps [0, 100, 1_000, 10_000, 50_000, 100_000] or something
 # instead of uniformly spaced steps
@@ -69,6 +71,8 @@ journal_freq = 10_000
 # now allow CLI to override the settings via the configurator lol
 config_keys = [k for k,v in globals().items() if not k.startswith('_') and isinstance(v, (int, float, bool, str))]
 exec(open(os.path.join('nanochat', 'configurator.py')).read()) # overrides from command line or config file
+# Wait til after configurator overwrites stuff to define fallback.
+run_name = run_name or timestamp()
 user_config = {k: globals()[k] for k in config_keys} # will be useful for logging
 # -----------------------------------------------------------------------------
 
@@ -123,8 +127,8 @@ model.init_weights()
 
 # If we are resuming, overwrite the model parameters with those of the checkpoint
 base_dir = get_base_dir()
-output_dirname = model_tag if model_tag else f"d{depth}" # e.g. d12
-checkpoint_dir = os.path.join(base_dir, "base_checkpoints", output_dirname)
+checkpoint_dir = os.path.join(base_dir, "base_checkpoints", run_name)
+os.makedirs(checkpoint_dir, parents=True, exist_ok=False)
 resuming = resume_from_step != -1
 if resuming:
     print0(f"Resuming optimization from step {resume_from_step}")
@@ -214,11 +218,12 @@ else:
     total_training_time = loop_state["total_training_time"]
 
 # -----------------------------------------------------------------------------
-# Callback handler (manages diary entries during training)
+# Prompt manager (manages diary entries during training)
 
-# TODO hdm need to define this somewhere, undecided if that should be in nanochat or aeon.
-# whoops, may have complicated this a bit 
-callback_handler = CallbackHandler(stage="pretraining", step_freq=journal_frequency)
+prompt_manager = PromptManager(
+    stage="pretraining", step_freq=journal_frequency,
+    run_dir=checkpoint_dir.replace("/base_checkpoints/", "/diary_entries/")
+)
 
 # -----------------------------------------------------------------------------
 # Training loop
@@ -371,7 +376,7 @@ while True:
         wandb_run.log(log_data)
         
         # Journal entries!
-        callback_handler.run(**locals())
+        prompt_manager.run(**locals())
 
     # state update
     step += 1

@@ -17,15 +17,40 @@ class TrainingStages:
     RL = "rl"                    # chat_rl.py
 
 
-class CallbackHandler:
+class PromptManager:
     
     def __init__(
         stage: str,
+        run_dir: str,
         step_freq: Optional[int] = 10_000,
         step_indices: Optional[list[int]] = None,
         temperature: Optional[float] = None, 
         max_tokens: Optional[int] = None, 
     ):
+    """Loads the appropriate prompts for the stage of training we're running and runs generations
+    on each of them periodically throughout training.
+
+
+    Parameters
+    ----------
+    stage : str
+        The stage of training to run (pretraining, midtraining, chat_sft, rl).
+    run_dir : str
+        Full path of dir that will contain these generations. We will create a subdir titled {stage}
+        inside. So ultimately generations will get saved at something like:
+        {root_dir}/diary_entries/{some_run_name_or_timestamp}/{stage}/{prompt_name}/{step}.txt
+    step_freq : Optional[int]
+        The frequency with which to run generation (e.g. run every 10,000 steps).
+    step_indices : Optional[list[int]]
+        Alternative to step_freq: the indices of steps to run generations. E.g. run on step
+        0, 10, 100, 1000, 10000, etc.
+    temperature : Optional[float]
+        The temperature to use for the generations. If None, we use the default temperature defined
+        in the prompt itself.
+    max_tokens : Optional[int]
+        The maximum number of tokens the generation output can contain. If None, we use the default
+        max_tokens defined in the prompt itself.
+    """
         if bool(step_freq) + bool(step_indices) != 1:
             raise ValueError("Exactly one of step_freq and step_indices must be non-null.")
 
@@ -43,11 +68,9 @@ class CallbackHandler:
 
         self.prompts = self._load_prompts(stage)
 
-        # TODO: thinking we can make a new subdir for each run. Could name this based on launch time
-        # or perhaps let the user pass in an informative-ish name on run?
-        # (e.g. "joke_rl_hard_negatives")
-        self.out_dir = Path(get_base_dir())/f"{self.stage}/{timestamp()}"
-        os.makedirs(self.out_dir, exist_ok=True)
+        # Create a new subdir for each run.
+        self.out_dir = Path(run_dir)/f"{self.stage}"
+        os.makedirs(self.out_dir, parents=True, exist_ok=False)
 
     def _load_prompts(self, stage: str) -> dict[str, "Prompt"]:
         """Load all prompts for the appropriate training stage
