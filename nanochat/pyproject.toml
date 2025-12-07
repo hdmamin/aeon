@@ -77,3 +77,6 @@ conflicts = [
         { extra = "gpu" },  
     ],  
 ]  
+# TODO: eventually may want to lock to standard pypi like we do in aeon.
+# index-url = "https://pypi.org/simple/"
+# package = true

@@ -64,10 +64,8 @@ sample_every = 2000 # every how many steps to sample from the model
 save_every = -1 # every how many steps to save model checkpoints (-1 = disable, and save only at the end of the run)
 # Output
 run_name = "" # provide some kind of name, ideally somewhat informative
-# TODO: hdm testing, see how many total steps there are. Also consider specifying a list of steps
-# instead of a freq, like maybe we want steps [0, 100, 1_000, 10_000, 50_000, 100_000] or something
-# instead of uniformly spaced steps
-journal_freq = 10_000
+journal_freq = 1_000
+journal_log_base = None
 # now allow CLI to override the settings via the configurator lol
 config_keys = [k for k,v in globals().items() if not k.startswith('_') and isinstance(v, (int, float, bool, str))]
 exec(open(os.path.join('nanochat', 'configurator.py')).read()) # overrides from command line or config file
@@ -221,7 +219,7 @@ else:
 # Prompt manager (manages diary entries during training)
 
 prompt_manager = PromptManager(
-    stage="pretraining", step_freq=journal_frequency,
+    stage="pretraining", step_freq=journal_freq, step_log_base=journal_log_base,
     run_dir=checkpoint_dir.replace("/base_checkpoints/", "/diary_entries/")
 )
 

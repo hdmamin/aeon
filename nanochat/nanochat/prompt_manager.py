@@ -3,7 +3,7 @@ from contextlib import AbstractContextManager
 from pathlib import Path
 from typing import Any, Optional
 
-from aeon.prompts import list_prompts
+from aeon.prompt import list_prompts, Prompt
 from aeon.utils import timestamp
 from nanochat.common import get_base_dir, print0
 from nanochat.engine import Engine
@@ -20,43 +20,41 @@ class TrainingStages:
 class PromptManager:
     
     def __init__(
+        self,
         stage: str,
         run_dir: str,
-        step_freq: Optional[int] = 10_000,
-        step_indices: Optional[list[int]] = None,
+        step_freq: Optional[int] = None,
+        step_log_base: Optional[int] = 10,
         temperature: Optional[float] = None, 
         max_tokens: Optional[int] = None, 
     ):
-    """Loads the appropriate prompts for the stage of training we're running and runs generations
-    on each of them periodically throughout training.
+        """Loads the appropriate prompts for the stage of training we're running and runs
+        generations on each of them periodically throughout training.
 
 
-    Parameters
-    ----------
-    stage : str
-        The stage of training to run (pretraining, midtraining, chat_sft, rl).
-    run_dir : str
-        Full path of dir that will contain these generations. We will create a subdir titled {stage}
-        inside. So ultimately generations will get saved at something like:
-        {root_dir}/diary_entries/{some_run_name_or_timestamp}/{stage}/{prompt_name}/{step}.txt
-    step_freq : Optional[int]
-        The frequency with which to run generation (e.g. run every 10,000 steps).
-    step_indices : Optional[list[int]]
-        Alternative to step_freq: the indices of steps to run generations. E.g. run on step
-        0, 10, 100, 1000, 10000, etc.
-    temperature : Optional[float]
-        The temperature to use for the generations. If None, we use the default temperature defined
-        in the prompt itself.
-    max_tokens : Optional[int]
-        The maximum number of tokens the generation output can contain. If None, we use the default
-        max_tokens defined in the prompt itself.
-    """
-        if bool(step_freq) + bool(step_indices) != 1:
-            raise ValueError("Exactly one of step_freq and step_indices must be non-null.")
-
+        Parameters
+        ----------
+        stage : str
+            The stage of training to run (pretraining, midtraining, chat_sft, rl).
+        run_dir : str
+            Full path of dir that will contain these generations. We will create a subdir titled
+            {stage} inside. So ultimately generations will get saved at something like:
+            {root_dir}/diary_entries/{some_run_name_or_timestamp}/{stage}/{prompt_name}/{step}.txt
+        step_freq : Optional[int]
+            The frequency with which to run generation (e.g. run every 10,000 steps).
+        step_log_base : Optional[int]
+            Alternative to step_freq: run at increasingly large intervals where this is the base of
+            the log used to calculate which steps to run on. E.g. step_log_base=10 means run at
+            step 1, 10, 100, 1_000, 10_000, etc.
+        temperature : Optional[float]
+            The temperature to use for the generations. If None, we use the default temperature
+            defined in the prompt itself.
+        max_tokens : Optional[int]
+            The maximum number of tokens the generation output can contain. If None, we use the
+            default max_tokens defined in the prompt itself.
+        """
         self.stage = stage
-        # TODO: check how many steps we might plausibly run in each stage.
-        self.steps = set(step_indices or list(range(0, 10_000_000, step_freq)))
+        self.steps = self._compute_steps(10_000_000, step_freq, step_log_base)
         self.temperature = temperature
         self.max_tokens = max_tokens
         # These will override Prompt cls defaults so only add non-None values.
@@ -71,6 +69,24 @@ class PromptManager:
         # Create a new subdir for each run.
         self.out_dir = Path(run_dir)/f"{self.stage}"
         os.makedirs(self.out_dir, parents=True, exist_ok=False)
+
+    def _compute_steps(self, max_iters: int, step_freq: Optional[int],
+                       step_log_base: Optional[int]) -> set[int]:
+        if bool(step_freq) + bool(step_log_base) != 1:
+            raise ValueError("Exactly one of step_freq and step_indices must be non-null.")
+
+        if step_freq:
+            steps = set(range(0, max_iters, step_freq))
+        else:
+            steps = set()
+            prev = 0
+            i = 0
+            while prev < max_iters:
+                step = step_log_base ** i
+                self.steps.add(step)
+                i += 1
+                prev = step
+        return steps
 
     def _load_prompts(self, stage: str) -> dict[str, "Prompt"]:
         """Load all prompts for the appropriate training stage
