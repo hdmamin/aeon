@@ -3,8 +3,9 @@ name = "nanochat"
 version = "0.1.0"
 description = "the minimal full-stack ChatGPT clone"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
+    "aeon",
     "datasets>=4.0.0",
     "fastapi>=0.117.1",
     "files-to-prompt>=0.6",
@@ -45,6 +46,7 @@ python_functions = ["test_*"]
 
 # target torch to cuda 12.8 or CPU
 [tool.uv.sources]
+aeon = { path = "../aeon", editable = true }
 torch = [  
     { index = "pytorch-cpu", extra = "cpu" },  
     { index = "pytorch-cu128", extra = "gpu" },  

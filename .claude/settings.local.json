@@ -5,7 +5,8 @@
       "Bash(mkdir:*)",
       "Bash(python -m pytest:*)",
       "Bash(source .venv/bin/activate)",
-      "Bash(make test:*)"
+      "Bash(make test:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
