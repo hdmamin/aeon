@@ -24,7 +24,7 @@ class PromptManager:
         stage: str,
         run_dir: str,
         step_freq: Optional[int] = None,
-        step_log_base: Optional[int] = 10,
+        step_exp_base: Optional[int] = 10,
         temperature: Optional[float] = None, 
         max_tokens: Optional[int] = None, 
     ):
@@ -42,9 +42,9 @@ class PromptManager:
             {root_dir}/diary_entries/{some_run_name_or_timestamp}/{stage}/{prompt_name}/{step}.txt
         step_freq : Optional[int]
             The frequency with which to run generation (e.g. run every 10,000 steps).
-        step_log_base : Optional[int]
+        step_exp_base : Optional[int]
             Alternative to step_freq: run at increasingly large intervals where this is the base of
-            the log used to calculate which steps to run on. E.g. step_log_base=10 means run at
+            the log used to calculate which steps to run on. E.g. step_exp_base=10 means run at
             step 1, 10, 100, 1_000, 10_000, etc.
         temperature : Optional[float]
             The temperature to use for the generations. If None, we use the default temperature
@@ -54,7 +54,7 @@ class PromptManager:
             default max_tokens defined in the prompt itself.
         """
         self.stage = stage
-        self.steps = self._compute_steps(10_000_000, step_freq, step_log_base)
+        self.steps = self._compute_steps(10_000_000, step_freq, step_exp_base)
         self.temperature = temperature
         self.max_tokens = max_tokens
         # These will override Prompt cls defaults so only add non-None values.
@@ -71,8 +71,8 @@ class PromptManager:
         os.makedirs(self.out_dir, parents=True, exist_ok=False)
 
     def _compute_steps(self, max_iters: int, step_freq: Optional[int],
-                       step_log_base: Optional[int]) -> set[int]:
-        if bool(step_freq) + bool(step_log_base) != 1:
+                       step_exp_base: Optional[int]) -> set[int]:
+        if bool(step_freq) + bool(step_exp_base) != 1:
             raise ValueError("Exactly one of step_freq and step_indices must be non-null.")
 
         if step_freq:
@@ -82,7 +82,7 @@ class PromptManager:
             prev = 0
             i = 0
             while prev < max_iters:
-                step = step_log_base ** i
+                step = step_exp_base ** i
                 self.steps.add(step)
                 i += 1
                 prev = step

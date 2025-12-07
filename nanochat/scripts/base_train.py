@@ -65,7 +65,7 @@ save_every = -1 # every how many steps to save model checkpoints (-1 = disable, 
 # Output
 run_name = "" # provide some kind of name, ideally somewhat informative
 journal_freq = 1_000
-journal_log_base = None
+journal_exp_base = None
 # now allow CLI to override the settings via the configurator lol
 config_keys = [k for k,v in globals().items() if not k.startswith('_') and isinstance(v, (int, float, bool, str))]
 exec(open(os.path.join('nanochat', 'configurator.py')).read()) # overrides from command line or config file
@@ -219,7 +219,7 @@ else:
 # Prompt manager (manages diary entries during training)
 
 prompt_manager = PromptManager(
-    stage="pretraining", step_freq=journal_freq, step_log_base=journal_log_base,
+    stage="pretraining", step_freq=journal_freq, step_exp_base=journal_exp_base,
     run_dir=checkpoint_dir.replace("/base_checkpoints/", "/diary_entries/")
 )
 
