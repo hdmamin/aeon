@@ -93,9 +93,16 @@ def tokenizing_distributed_data_loader_with_state(B, T, split, tokenizer_threads
         inputs = inputs_cpu.view(B, T).to(device=device, non_blocking=use_cuda_optimizations)
         targets = targets_cpu.view(B, T).to(device=device, non_blocking=use_cuda_optimizations)
         state_dict = {"pq_idx": pq_idx, "rg_idx": rg_idx} # we need this in case we wish to approximately resume training
-        yield inputs, targets, state_dict, random.choice(doc_batches)[:1_000]
+        # Last item flattens list[list[str]] into list[str], then chooses a str and truncates it.
+        # It's possible to end up with empty doc_batches (and sample str, as a result) 
+        # TODO hdm: check how often sample is empty. Sounds like it could be quite often. Could also
+        # switch to just showing a sample from a recent batch, maybe not perfectly corresponding to
+        # these inputs/targets? Or create another companion list sort of like doc_batches but that
+        # maps to the current inputs more directly.
+        sample = random.choice(sum(doc_batches, []))[:1_000] if doc_batches else ""
+        yield inputs, targets, state_dict, sample
 
 def tokenizing_distributed_data_loader(*args, **kwargs):
     # helper function that only emits the inputs/targets and not the state_dict
-    for inputs, targets, state_dict in tokenizing_distributed_data_loader_with_state(*args, **kwargs):
+    for inputs, targets, state_dict, _ in tokenizing_distributed_data_loader_with_state(*args, **kwargs):
         yield inputs, targets

@@ -66,12 +66,13 @@ class Prompt:
         self.name = name
         self.prompt = importlib.import_module(f"aeon.prompts.{name}")
         self.default_kwargs = self._resolve_kwargs(**self.prompt.kwargs | kwargs)
-        if "response_format" not in self.default_kwargs:
+
+        self.provider = infer_provider(self.default_kwargs.get("model", None))
+        if "response_format" not in self.default_kwargs and self.provider != "nanochat":
             logger.warning(
                 f"No response_format specified for prompt {name}. We recommend providing one."
             )
 
-        self.provider = infer_provider(self.default_kwargs.get("model", None))
         unsupported = self._unsupported_kwargs["provider"].get(self.provider, set()) \
             & set(self.default_kwargs)
         if unsupported:
@@ -152,16 +153,6 @@ def infer_provider(model: Optional[str]) -> str:
         provider = "openrouter"
     return provider
 
-
-# TODO rm
-# def list_prompts() -> list[str]:
-#     """Return aeon's available prompt names."""
-#     prompt_dir = Path(__file__).parent/"prompts"
-#     return [
-#         path.stem for path in prompt_dir.iterdir()
-#         if path.suffix == ".py"
-#         and not path.stem.startswith("_")  # internal lib files
-#     ]
 
 def list_prompts(prompt_dir = Path(__file__).parent/"prompts", _depth: int = 0) -> list[str]:
     """Return aeon's available prompt names."""

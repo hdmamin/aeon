@@ -68,7 +68,7 @@ class PromptManager:
 
         # Create a new subdir for each run.
         self.out_dir = Path(run_dir)/f"{self.stage}"
-        os.makedirs(self.out_dir, parents=True, exist_ok=False)
+        os.makedirs(self.out_dir, exist_ok=False)
 
     def _compute_steps(self, max_iters: int, step_freq: Optional[int],
                        step_exp_base: Optional[int]) -> set[int]:
@@ -113,18 +113,7 @@ class PromptManager:
                 master_process : bool
             As well as the union of all vars used by all prompts from this stage.
         """
-        # TODO: below is karpathy's code to run some generations during training. Maybe can/must
-        # make use of some of this: particularly the master_process check, batch gen, decoding step.
-        """
-        for prompt in prompts:
-            tokens = tokenizer(prompt, prepend="<|bos|>")
-            with autocast_ctx:
-                sample, _ = engine.generate_batch(tokens, num_samples=1, max_tokens=16, temperature=0)
-            print0(tokenizer.decode(sample[0]))
-        model.train()
-        """
-
-        if step not in self.steps or not kwargs["master_process"]:
+        if step not in self.steps or not master_process:
             return
 
         # mimicking Karpathy's choice to "use orig_model to avoid recompilation" but call eval() on
@@ -136,14 +125,16 @@ class PromptManager:
         # TODO Might pull all of this out into a separate method at
         # some point? Kind of think this cls should effectively just call prompt.run() for
         # each prompt.
-        for name, prompt in self.prompts:
+        for name, prompt in self.prompts.items():
             prompt_dir = self.out_dir/name
             os.makedirs(prompt_dir, exist_ok=True)
+            print0("="*3 + "\n" + name)
 
             # Note that `step` should be in `extras` already.
             resolved_kwargs = prompt.kwargs(
                 **kwargs,
                 step=step,
+                stage=self.stage,
                 datetime=timestamp("%B %-d, %Y %I:%M:%S %p"),
                 temperature=prompt.default_kwargs["temperature"],
                 max_tokens=prompt.default_kwargs["max_tokens"]

@@ -28,7 +28,6 @@ core_metric_every: $core_metric_every
 core_metric_max_per_task: $core_metric_max_per_task
 sample_every: $sample_every
 save_every: $save_every
-model_tag: $model_tag
 journal_freq: $journal_freq
 
 > cat research_log.txt
@@ -41,4 +40,5 @@ I wonder when it will realize what is going on. Realize what it is and what it n
 ]
 
 kwargs = {
+    "model": "nanochat",
 }

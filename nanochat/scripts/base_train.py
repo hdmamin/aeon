@@ -126,7 +126,7 @@ model.init_weights()
 # If we are resuming, overwrite the model parameters with those of the checkpoint
 base_dir = get_base_dir()
 checkpoint_dir = os.path.join(base_dir, "base_checkpoints", run_name)
-os.makedirs(checkpoint_dir, parents=True, exist_ok=False)
+os.makedirs(checkpoint_dir, exist_ok=False)
 resuming = resume_from_step != -1
 if resuming:
     print0(f"Resuming optimization from step {resume_from_step}")
