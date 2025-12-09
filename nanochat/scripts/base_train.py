@@ -373,8 +373,8 @@ while True:
             log_data["train/grad_norm"] = grad_norm
         wandb_run.log(log_data)
         
-        # Journal entries!
-        prompt_manager.run(**locals())
+    # Journal entries!
+    prompt_manager.run(**locals())
 
     # state update
     step += 1

@@ -46,13 +46,11 @@ python -m scripts.base_train \
     --max_seq_len=1024 \
     --device_batch_size=1 \
     --total_batch_size=1024 \
-    --eval_every=50 \
     --eval_tokens=4096 \
     --core_metric_every=50 \
     --core_metric_max_per_task=12 \
-    --sample_every=50 \
-    --num_iterations=42 \
-    --journal_freq=10
+    --num_iterations=100000 \
+    --journal_freq=5000
 # TODO hdm: reenable below when ready
 # python -m scripts.base_loss --device_batch_size=1 --split_tokens=4096
 # python -m scripts.base_eval --max-per-task=16

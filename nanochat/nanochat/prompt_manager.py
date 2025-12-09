@@ -54,6 +54,8 @@ class PromptManager:
             default max_tokens defined in the prompt itself.
         """
         self.stage = stage
+        # TODO: may be better to pass in num_iterations? realized this number can be quite large,
+        # maybe better not to guess.
         self.steps = self._compute_steps(10_000_000, step_freq, step_exp_base)
         self.temperature = temperature
         self.max_tokens = max_tokens
