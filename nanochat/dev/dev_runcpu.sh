@@ -50,8 +50,8 @@ python -m scripts.base_train \
     --eval_tokens=4096 \
     --core_metric_every=10000 \
     --core_metric_max_per_task=12 \
-    --num_iterations=100000 \
-    --journal_freq=5000
+    --journal_freq=10000
+    # --num_iterations=100000
 # python -m scripts.base_loss --device_batch_size=1 --split_tokens=4096
 # python -m scripts.base_eval --max-per-task=16
 
