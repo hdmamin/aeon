@@ -47,6 +47,8 @@ class PromptManager:
             Alternative to step_freq: run at increasingly large intervals where this is the base of
             the log used to calculate which steps to run on. E.g. step_exp_base=10 means run at
             step 1, 10, 100, 1_000, 10_000, etc.
+        num_iterations : int
+            The total number of training steps this stage of training will contain.
         temperature : Optional[float]
             The temperature to use for the generations. If None, we use the default temperature
             defined in the prompt itself.
@@ -55,9 +57,8 @@ class PromptManager:
             default max_tokens defined in the prompt itself.
         """
         self.stage = stage
-        # TODO: may be better to pass in num_iterations? realized this number can be quite large,
-        # maybe better not to guess.
         self.steps = self._compute_steps(num_iterations, step_freq, step_exp_base)
+        self.num_iterations = num_iterations
         self.temperature = temperature
         self.max_tokens = max_tokens
         # These will override Prompt cls defaults so only add non-None values.
