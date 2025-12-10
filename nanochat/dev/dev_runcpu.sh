@@ -48,7 +48,7 @@ python -m scripts.base_train \
     --device_batch_size=1 \
     --total_batch_size=1024 \
     --eval_tokens=4096 \
-    --core_metric_every=10000 \
+    --core_metric_every=20000 \
     --core_metric_max_per_task=12 \
     --journal_freq=10000
     # --num_iterations=100000
