@@ -25,6 +25,7 @@ class PromptManager:
         run_dir: str,
         step_freq: Optional[int] = None,
         step_exp_base: Optional[int] = 10,
+        num_iterations: int = 10_000_000,
         temperature: Optional[float] = None, 
         max_tokens: Optional[int] = None, 
     ):
@@ -56,7 +57,7 @@ class PromptManager:
         self.stage = stage
         # TODO: may be better to pass in num_iterations? realized this number can be quite large,
         # maybe better not to guess.
-        self.steps = self._compute_steps(10_000_000, step_freq, step_exp_base)
+        self.steps = self._compute_steps(num_iterations, step_freq, step_exp_base)
         self.temperature = temperature
         self.max_tokens = max_tokens
         # These will override Prompt cls defaults so only add non-None values.
@@ -77,6 +78,8 @@ class PromptManager:
         if bool(step_freq) + bool(step_exp_base) != 1:
             raise ValueError("Exactly one of step_freq and step_indices must be non-null.")
 
+        # +1 because we want to allow running on the last step if the math works out that way.
+        max_iters = max_iters + 1
         if step_freq:
             steps = set(range(0, max_iters, step_freq))
         else:

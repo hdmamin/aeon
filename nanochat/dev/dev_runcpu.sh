@@ -52,7 +52,6 @@ python -m scripts.base_train \
     --core_metric_max_per_task=12 \
     --num_iterations=100000 \
     --journal_freq=5000
-# TODO hdm: reenable below when ready
 # python -m scripts.base_loss --device_batch_size=1 --split_tokens=4096
 # python -m scripts.base_eval --max-per-task=16
 

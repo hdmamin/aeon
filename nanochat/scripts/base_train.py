@@ -220,6 +220,7 @@ else:
 
 prompt_manager = PromptManager(
     stage="pretraining", step_freq=journal_freq, step_exp_base=journal_exp_base,
+    num_iterations=num_iterations,
     run_dir=checkpoint_dir.replace("/base_checkpoints/", "/diary_entries/")
 )
 
