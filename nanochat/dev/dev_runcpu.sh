@@ -40,8 +40,9 @@ python -m nanochat.report reset
 # train a very small 4 layer model on the CPU
 # each optimization step processes a single sequence of 1024 tokens
 # we only run 50 steps of optimization (bump this to get better results)
-# TODO hdm: changed to depth=2 (from 4) and num_iterations=2 (from 50) for testing,
-# increased core_metric_every a ton bc its extremely slow
+# hdm: changed from num_iterations=50 to auto-computed based on chinchilla scaling, which comes out
+# to ~700k steps. This ran in ~24 hours on m1 mac. Increased core_metric_every a lot because this
+# was taking up the bulk of training time with karpathy's default.
 python -m scripts.base_train \
     --depth=4 \
     --max_seq_len=1024 \
@@ -51,9 +52,8 @@ python -m scripts.base_train \
     --core_metric_every=20000 \
     --core_metric_max_per_task=12 \
     --journal_freq=10000
-    # --num_iterations=100000
-# python -m scripts.base_loss --device_batch_size=1 --split_tokens=4096
-# python -m scripts.base_eval --max-per-task=16
+python -m scripts.base_loss --device_batch_size=1 --split_tokens=4096
+python -m scripts.base_eval --max-per-task=16
 
 # # midtraining
 # python -m scripts.mid_train \
