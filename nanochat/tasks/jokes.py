@@ -67,20 +67,25 @@ class Jokes(Task):
 
         self.split = split
         self.dataset = load_dataset("hmamin/extract_jokes", split="train")
+        # TODO: decide how to split, leaning towards random sample (i.e. not keeping any comedian
+        # entirely in train or test)
 
-    def _format_prompt_example(self, item: dict) -> list[dict]:
-        return [
-            {
-                "role": "user",
-                "content": item["prompt"]
-            },
-            {
-                "role": "assistant",
-                "content": item["joke"]
-            }
-        ]
+    def _format_messages(self, item: dict, mode: str) -> list[dict]:
+        """Grab one dataset item and format it as a list of messages (one user, one assistant).
 
-    def _format_item(self, item: dict, mode: str) -> list[dict]:
+        Parameters
+        ----------
+        item : dict
+            A single item from our huggingface hmamin/extract_jokes dataset.
+        mode : str
+            The mode to format the messages for. Must be one of
+            ("prompt", "subtext", "unfunny_variant").
+
+        Returns
+        -------
+        list[dict]
+            A list of messages (one user, one assistant) to be used for mid-training.
+        """
         prefix_candidates = PREFIXES.get(mode, [])
         base_response = [
             {
@@ -105,7 +110,17 @@ class Jokes(Task):
 
     def num_examples(self) -> int:
         return len(self.dataset) * 3
+        # TODO: update after working out train/test split logic.
 
     def get_example(self, index: int) -> dict:
+        """Get a single training example for mid-training.
+
+        Returns
+        -------
+        list[dict]
+            A list of messages (one user, one assistant) to be used for mid-training.
+        """
         item = self.dataset[index]
-        return {"messages": self._format_item(item)}
+        # TODO: still deciding how to resolve mode. Prob somehow as a function of index.
+        mode = ""
+        return {"messages": self._format_messages(item, mode=mode)}
