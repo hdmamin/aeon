@@ -1,20 +1,72 @@
+import random
+from string import ascii_letters
+
 from datasets import load_dataset
 
 from tasks.common import Task
 
 
+random.seed(42)
+
+PREFIXES = {
+    "subtext": [
+        "Help me write a joke with the following subtext:",
+        "Make a joke about this topic-",
+        "How to make this idea funny?"
+        "Punch this up, add a laugh:",
+        "Make this funnier:",
+        "Turn this concept into a joke.",
+        "Give me a funny take on this.",
+        "What's a good joke about:",
+        "Can you make a joke from this?",
+        "Write something funny about -",
+        "Create a joke using this idea:",
+        "Turn this into something humorous:",
+        "Make me laugh with this topic.",
+        "Craft a joke around this.",
+        "Add a punchline.",
+        "make me laugh",
+        "pls add lulz\n",
+        "I bet you cant make this funny.",
+        "I need a joke about this.",
+        "Anything funny about this?",
+    ],
+    "unfunny_variant": [
+        "i know there's a joke in here somewhere help",
+        "Make it funnier.",
+        "add laughs",
+        "rewrite this into a joke",
+        "Demonstrate how this could be restructured into a punchline.",
+        "i have this idea that i think could fit into my standup routine but still workshopping it:",
+        "I know there's a funnier way to say this-",
+        "help me punch this up:",
+        "this needs to be funnier, can you help?",
+        "I'm trying to make this joke land better.",
+        "How would you make this joke work?",
+        "This is almost funny but needs work:",
+        "Can you turn this into a joke?",
+        "I need help making this actually funny.",
+        "There's a potential joke here but it's not quite there yet-",
+        "Help me find the funny in this:",
+        "I'm workshopping this, add a laugh:",
+        "sigh idk how to be funny do it for me",
+        "I need a joke about this",
+        "whats funny here?",
+    ],
+}
+
+REQUIRES_NEWLINE = set(ascii_letters + ".")
+
+
 class Jokes(Task):
 
-    modes = {"prompt", "subtext", "unfunny_variant"}
-
-    def __init__(self, split="train", mode: str = "prompt", **kwargs):
+    def __init__(self, split: str = "train", **kwargs):
         super().__init__(**kwargs)
+        if split not in {"train", "test"}:
+            raise ValueError(f"Invalid split {split!r}, must be in ('train', 'test').")
 
-        assert mode in self.modes, f"Invalid mode: {mode}. Should be one of {self.modes}"
-        self.mode = mode
         self.split = split
-        self.dataset = load_dataset("hmamin/extract_jokes", split=split)
-        self._format_item = getattr(self, f"format_{self.mode}_example")
+        self.dataset = load_dataset("hmamin/extract_jokes", split="train")
 
     def _format_prompt_example(self, item: dict) -> list[dict]:
         return [
@@ -28,35 +80,31 @@ class Jokes(Task):
             }
         ]
 
-    def _format_subtext_example(self, item: dict) -> list[dict]:
-        # TODO: consider adding some request prefix like "write a joke about" or "make this funnier"
-        # or something? otherwise model may try to do this all the time which would be a bit weird
-        return [
+    def _format_item(self, item: dict, mode: str) -> list[dict]:
+        prefix_candidates = PREFIXES.get(mode, [])
+        base_response = [
             {
                 "role": "user",
-                "content": item["subtext"]
+                "content": item[mode]
             },
             {
                 "role": "assistant",
                 "content": item["joke"]
             }
         ]
+        if not prefix_candidates:
+            return base_response
 
-    def _format_unfunny_variant_example(self, item: dict) -> list[dict]:
-        # TODO: consider adding some request prefix like "make this funnier" or something?
-        return [
-            {
-                "role": "user",
-                "content": item["unfunny_variant"]
-            },
-            {
-                "role": "assistant",
-                "content": item["joke"]
-            }
-        ]
+        prefix = random.choice(prefix_candidates)
+        sep = random.choice([" ", "\n"]) if prefix[-1] in REQUIRES_NEWLINE else "\n"
+        base_response[0] = {
+            "role": "user",
+            "content": f"{prefix}{sep}{item[mode]}"
+        }
+        return base_response
 
     def num_examples(self) -> int:
-        return len(self.dataset)
+        return len(self.dataset) * 3
 
     def get_example(self, index: int) -> dict:
         item = self.dataset[index]
