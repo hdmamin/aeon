@@ -64,13 +64,15 @@ class Jokes(Task):
 
     modes = ["prompt", "subtext", "unfunny_variant"]
 
-    def __init__(self, split: str = "train", dataset_name: str = "hmamin/extract_jokes", **kwargs):
+    def __init__(self, split: str = "train", dataset_name: str = "hmamin/extract_jokes",
+                 test_size: int | float = 0.1, **kwargs):
         super().__init__(**kwargs)
         if split not in {"train", "test"}:
             raise ValueError(f"Invalid split {split!r}, must be in ('train', 'test').")
 
         self.split = split
         self.dataset_name = dataset_name
+        self.test_size = test_size
         self.dataset = Dataset.from_generator(self._load_dataset).shuffle(seed=SEED)
 
     def _load_dataset(self) -> Generator[list[dict], None, None]:
@@ -81,8 +83,13 @@ class Jokes(Task):
         (Huggingface dataset.from_generator expects a callable that yields examples.)
         """
         dataset = load_dataset(self.dataset_name, split="train")
-        dataset = dataset.train_test_split(test_size=0.1, seed=SEED)
-        dataset = dataset[self.split].repeat(3)
+        if self.test_size:
+            dataset = dataset.train_test_split(test_size=self.test_size, seed=SEED)
+            dataset = dataset[self.split]
+        elif self.split == "test":
+            raise ValueError("test_size must be > 0 when split='test'")
+
+        dataset = dataset.repeat(3)
         for i, row in enumerate(dataset.to_iterable_dataset()):
             mode = self.modes[i % 3]
             # Must yield dict instead of list[dict] if we want to use with Dataset class.
