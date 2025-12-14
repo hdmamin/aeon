@@ -1,5 +1,6 @@
 import random
 from string import ascii_letters
+from typing import Generator
 
 from datasets import load_dataset, Dataset
 
@@ -70,19 +71,20 @@ class Jokes(Task):
 
         self.split = split
         self.dataset_name = dataset_name
-        self.dataset = self._load_dataset()
+        self.dataset = Dataset.from_generator(self._load_dataset).shuffle(seed=SEED)
 
-    def _load_dataset(self) -> Dataset:
+    def _load_dataset(self) -> Generator[list[dict], None, None]:
+        """
+        Generator that yields one row of data at a time, formatted as list[dict]. We create 3
+        variants of each initial example, one for each mode. Shuffling will occur after we construct
+        the huggingface dataset.
+        (Huggingface dataset.from_generator expects a callable that yields examples.)
+        """
         dataset = load_dataset(self.dataset_name, split="train")
         dataset = dataset.train_test_split(test_size=0.1, seed=SEED)
         dataset = dataset[self.split].repeat(3)
-        new_dataset = Dataset.from_generator(
-            (
-                self._format_messages(row, mode=self.modes[i % 3])
-                for i, row in enumerate(dataset.to_iterable_dataset())
-            ),
-        )
-        return new_dataset.shuffle(seed=SEED)
+        for i, row in enumerate(dataset.to_iterable_dataset()):
+            yield self._format_messages(row, mode=self.modes[i % 3])
 
     def _format_messages(self, item: dict, mode: str) -> list[dict]:
         """Grab one dataset item and format it as a list of messages (one user, one assistant).
