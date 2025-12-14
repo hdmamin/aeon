@@ -25,6 +25,7 @@ import torch.distributed as dist
 
 from tasks.common import TaskMixture
 from tasks.gsm8k import GSM8K
+from tasks.jokes import Jokes
 from tasks.mmlu import MMLU
 from tasks.smoltalk import SmolTalk
 from tasks.customjson import CustomJSON

@@ -22,20 +22,19 @@ source .venv/bin/activate
 if [ -z "$WANDB_RUN" ]; then
     WANDB_RUN=dummy
 fi
-# TODO hdm: reenable when ready for full run? Or make conditional
-# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-# source "$HOME/.cargo/env"
-# uv run maturin develop --release --manifest-path rustbpe/Cargo.toml
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source "$HOME/.cargo/env"
+uv run maturin develop --release --manifest-path rustbpe/Cargo.toml
 
 # wipe the report
 # TODO hdm: maybe check if we need to/can update to write to run specific dir each time instead of overwriting?
 python -m nanochat.report reset
 
 # train tokenizer on ~1B characters
-# TODO hdm: reenable when ready?
-# python -m nanochat.dataset -n 4
-# python -m scripts.tok_train --max_chars=1000000000
-# python -m scripts.tok_eval
+# Downloading dataset will take a while.
+python -m nanochat.dataset -n 4
+python -m scripts.tok_train --max_chars=1000000000
+python -m scripts.tok_eval
 
 # train a very small 4 layer model on the CPU
 # each optimization step processes a single sequence of 1024 tokens
@@ -55,14 +54,15 @@ python -m scripts.base_train \
 python -m scripts.base_loss --device_batch_size=1 --split_tokens=4096
 python -m scripts.base_eval --max-per-task=16
 
-# # midtraining
-# python -m scripts.mid_train \
-#     --max_seq_len=1024 \
-#     --device_batch_size=1 \
-#     --eval_every=50 \
-#     --eval_tokens=4096 \
-#     --total_batch_size=1024 \
-#     --num_iterations=100
+# midtraining
+# TODO hdm: remove num_iterations before full run
+python -m scripts.mid_train \
+    --max_seq_len=1024 \
+    --device_batch_size=1 \
+    --eval_every=50 \
+    --eval_tokens=4096 \
+    --total_batch_size=1024 \
+    --num_iterations=50
 # # eval results will be terrible, this is just to execute the code paths.
 # # note that we lower the execution memory limit to 1MB to avoid warnings on smaller systems
 # python -m scripts.chat_eval --source=mid --max-new-tokens=128 --max-problems=20
