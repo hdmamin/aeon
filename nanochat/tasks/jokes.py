@@ -84,7 +84,9 @@ class Jokes(Task):
         dataset = dataset.train_test_split(test_size=0.1, seed=SEED)
         dataset = dataset[self.split].repeat(3)
         for i, row in enumerate(dataset.to_iterable_dataset()):
-            yield self._format_messages(row, mode=self.modes[i % 3])
+            mode = self.modes[i % 3]
+            # Must yield dict instead of list[dict] if we want to use with Dataset class.
+            yield {"messages": self._format_messages(row, mode=mode), "mode": mode}
 
     def _format_messages(self, item: dict, mode: str) -> list[dict]:
         """Grab one dataset item and format it as a list of messages (one user, one assistant).
@@ -117,7 +119,7 @@ class Jokes(Task):
             return base_response
 
         prefix = random.choice(prefix_candidates)
-        sep = random.choice([" ", "\n"]) if prefix[-1] in REQUIRES_NEWLINE else "\n"
+        sep = "\n" if prefix[-1] in REQUIRES_NEWLINE else random.choice([" ", "\n"])
         base_response[0] = {
             "role": "user",
             "content": f"{prefix}{sep}{item[mode]}"
@@ -125,18 +127,15 @@ class Jokes(Task):
         return base_response
 
     def num_examples(self) -> int:
-        return len(self.dataset) * 3
-        # TODO: update after working out train/test split logic.
+        return len(self.dataset)
 
     def get_example(self, index: int) -> dict:
         """Get a single training example for mid-training.
 
         Returns
         -------
-        list[dict]
-            A list of messages (one user, one assistant) to be used for mid-training.
+        dict[list[dict]]
+            Dict contains one key, "messages". That is a list of messages (one user, one assistant)
+            to be used for mid-training.
         """
-        item = self.dataset[index]
-        # TODO: still deciding how to resolve mode. Prob somehow as a function of index.
-        mode = ""
-        return {"messages": self._format_messages(item, mode=mode)}
+        return self.dataset[index]
