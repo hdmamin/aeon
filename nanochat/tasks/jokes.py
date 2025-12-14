@@ -1,12 +1,13 @@
 import random
 from string import ascii_letters
 
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 
 from tasks.common import Task
 
 
-random.seed(42)
+SEED = 42
+random.seed(SEED)
 
 PREFIXES = {
     "subtext": [
@@ -60,15 +61,28 @@ REQUIRES_NEWLINE = set(ascii_letters + ".")
 
 class Jokes(Task):
 
-    def __init__(self, split: str = "train", **kwargs):
+    modes = ["prompt", "subtext", "unfunny_variant"]
+
+    def __init__(self, split: str = "train", dataset_name: str = "hmamin/extract_jokes", **kwargs):
         super().__init__(**kwargs)
         if split not in {"train", "test"}:
             raise ValueError(f"Invalid split {split!r}, must be in ('train', 'test').")
 
         self.split = split
-        self.dataset = load_dataset("hmamin/extract_jokes", split="train")
-        # TODO: decide how to split, leaning towards random sample (i.e. not keeping any comedian
-        # entirely in train or test)
+        self.dataset_name = dataset_name
+        self.dataset = self._load_dataset()
+
+    def _load_dataset(self) -> Dataset:
+        dataset = load_dataset(self.dataset_name, split="train")
+        dataset = dataset.train_test_split(test_size=0.1, seed=SEED)
+        dataset = dataset[self.split].repeat(3)
+        new_dataset = Dataset.from_generator(
+            (
+                self._format_messages(row, mode=self.modes[i % 3])
+                for i, row in enumerate(dataset.to_iterable_dataset())
+            ),
+        )
+        return new_dataset.shuffle(seed=SEED)
 
     def _format_messages(self, item: dict, mode: str) -> list[dict]:
         """Grab one dataset item and format it as a list of messages (one user, one assistant).
