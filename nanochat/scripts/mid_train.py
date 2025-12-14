@@ -28,8 +28,6 @@ from tasks.gsm8k import GSM8K
 from tasks.jokes import Jokes
 from tasks.mmlu import MMLU
 from tasks.smoltalk import SmolTalk
-from tasks.customjson import CustomJSON
-from tasks.spellingbee import SimpleSpelling, SpellingBee
 
 # -----------------------------------------------------------------------------
 run = "dummy" # wandb run name default ("dummy" is special - we won't log to wandb)

@@ -61,8 +61,7 @@ python -m scripts.mid_train \
     --device_batch_size=1 \
     --eval_every=50 \
     --eval_tokens=4096 \
-    --total_batch_size=1024 \
-    --num_iterations=50
+    --total_batch_size=1024
 # # eval results will be terrible, this is just to execute the code paths.
 # # note that we lower the execution memory limit to 1MB to avoid warnings on smaller systems
 # python -m scripts.chat_eval --source=mid --max-new-tokens=128 --max-problems=20
