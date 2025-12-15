@@ -146,3 +146,12 @@ class Jokes(Task):
             to be used for mid-training.
         """
         return self.dataset[index]
+
+    @property
+    def eval_type(self):
+        f"""Expected part of the Task interface (one of {"generative", "categorical"}).
+
+        Note: if we wanted to include this dataset in chat_eval.py evaluations, we'd also need to
+        implement an `evaluate` method, but that is not really straightforward for this task.
+        """
+        return "generative"

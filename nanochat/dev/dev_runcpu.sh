@@ -62,17 +62,18 @@ python -m scripts.mid_train \
     --eval_every=50 \
     --eval_tokens=4096 \
     --total_batch_size=1024
-# # eval results will be terrible, this is just to execute the code paths.
-# # note that we lower the execution memory limit to 1MB to avoid warnings on smaller systems
-# python -m scripts.chat_eval --source=mid --max-new-tokens=128 --max-problems=20
+# eval results will be terrible, this is just to execute the code paths.
+# note that we lower the execution memory limit to 1MB to avoid warnings on smaller systems
+python -m scripts.chat_eval --source=mid --max-new-tokens=128 --max-problems=20
 
+# TODO hdm: left off here
 # # SFT
 # python -m scripts.chat_sft \
 #     --device_batch_size=1 \
 #     --target_examples_per_step=4 \
 #     --num_iterations=100 \
-#     --eval_steps=4 \
-#     --eval_metrics_max_problems=16
+#     --eval_metrics_max_problems=16 \
+#     --eval_steps=4
 
 # # Chat CLI
 # # python -m scripts.chat_cli -p "Why is the sky blue?"
