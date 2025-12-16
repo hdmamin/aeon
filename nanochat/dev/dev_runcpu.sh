@@ -67,13 +67,12 @@ python -m scripts.mid_train \
 python -m scripts.chat_eval --source=mid --max-new-tokens=128 --max-problems=20
 
 # TODO hdm: left off here
-# # SFT
-# python -m scripts.chat_sft \
-#     --device_batch_size=1 \
-#     --target_examples_per_step=4 \
-#     --num_iterations=100 \
-#     --eval_metrics_max_problems=16 \
-#     --eval_steps=4
+# SFT
+# hdm: removed num_iterations and eval_steps
+python -m scripts.chat_sft \
+    --device_batch_size=1 \
+    --target_examples_per_step=4 \
+    --eval_metrics_max_problems=16
 
 # # Chat CLI
 # # python -m scripts.chat_cli -p "Why is the sky blue?"
