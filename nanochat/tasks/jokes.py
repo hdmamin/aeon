@@ -1,3 +1,5 @@
+import hashlib
+import json
 import random
 from string import ascii_letters
 from typing import Generator
@@ -58,6 +60,11 @@ PREFIXES = {
 }
 
 REQUIRES_NEWLINE = set(ascii_letters + ".")
+
+
+def hash_messages(messages: list[dict[str, str]]) -> str:
+    message_str = json.dumps(messages)
+    return hashlib.sha256(message_str.encode()).hexdigest()
 
 
 class Jokes(Task):
@@ -159,20 +166,40 @@ class Jokes(Task):
 
 class JokeDetectionRL(Jokes):
 
+    joke_label = "joke"
+    not_joke_label = "not a joke"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.dataset.map(self._add_joke_label)
+        # Hash of messages list -> label str in ("joke", "not a joke").
+        self.hash2label = {}
 
     def _add_joke_label(self, item: dict) -> dict:
         """Select either the joke or the unfunny_variant and add a label."""
-        first_message = {"role": "user", "content": "Classify this as 'joke' or 'not a joke'"}
+        first_message = {"role": "user", "content": "Classify this as 'joke' or 'not a joke'."}
         if random.uniform(0, 1) >= 0.5:
-            item["label"] = "joke"
-            item["messages"] = [{"role": "user", "content": item["messages"][1]}]
+            item["label"] = self.joke_label
+            item["messages"] = [first_message, {"role": "user", "content": item["messages"][1]}]
         else:
-            item["label"] = "not a joke"
-            item["messages"] = [{"role": "user", "content": item["messages"][0]}]
+            item["label"] = self.not_joke_label
+            item["messages"] = [first_message, {"role": "user", "content": item["messages"][0]}]
+        
+        # Realized evaluate doesn't expose the label key automatically, try exposing it a different
+        # way.
+        self.hash2label[hash_messages(item["messages"])] = item["label"]
         return item
 
-    def evaluate(self, conversation, assistant_response):
-        pass
+    # TODO: check if assistant response is actually a str, karpathy comment in gsm8k implies it may
+    # not be.
+    def evaluate(self, conversation: list[dict], assistant_response: str):
+        label = hash_messages(conversation)
+
+        # We give a little credit for outputs containing a valid label,
+        # heavily penalize responses with no valid labels.
+        if self.not_joke_label in assistant_response:
+            return max(0.1, float(label == self.not_joke_label))
+        elif self.joke_label in assistant_response:
+            return max(0.1, float(label == self.joke_label))
+        else:
+            return 0
