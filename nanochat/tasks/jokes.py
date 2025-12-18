@@ -155,3 +155,24 @@ class Jokes(Task):
         implement an `evaluate` method, but that is not really straightforward for this task.
         """
         return "generative"
+
+
+class JokeDetectionRL(Jokes):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.dataset.map(self._add_joke_label)
+
+    def _add_joke_label(self, item: dict) -> dict:
+        """Select either the joke or the unfunny_variant and add a label."""
+        first_message = {"role": "user", "content": "Classify this as 'joke' or 'not a joke'"}
+        if random.uniform(0, 1) >= 0.5:
+            item["label"] = "joke"
+            item["messages"] = [{"role": "user", "content": item["messages"][1]}]
+        else:
+            item["label"] = "not a joke"
+            item["messages"] = [{"role": "user", "content": item["messages"][0]}]
+        return item
+
+    def evaluate(self, conversation, assistant_response):
+        pass
