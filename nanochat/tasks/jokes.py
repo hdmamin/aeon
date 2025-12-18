@@ -180,10 +180,16 @@ class JokeDetectionRL(Jokes):
         first_message = {"role": "user", "content": "Classify this as 'joke' or 'not a joke'."}
         if random.uniform(0, 1) >= 0.5:
             item["label"] = self.joke_label
-            item["messages"] = [first_message, {"role": "user", "content": item["messages"][1]}]
+            item["messages"] = [
+                first_message,
+                {"role": "user", "content": item["messages"]["content"][1]}
+            ]
         else:
             item["label"] = self.not_joke_label
-            item["messages"] = [first_message, {"role": "user", "content": item["messages"][0]}]
+            item["messages"] = [
+                first_message,
+                {"role": "user", "content": item["messages"]["content"][0]}
+            ]
         
         # Realized evaluate doesn't expose the label key automatically, try exposing it a different
         # way.
