@@ -85,6 +85,20 @@ class TaskMixture(Task):
         task_idx, local_idx = self.index_map[index]
         return self.tasks[task_idx][local_idx]
 
+    def evaluate(self, conversation, assistant_response):
+        """
+        """
+        pass
+        # TODO: think I init to construct a mapping from maybe some kind of hash of the conversation
+        # to the task obj it initially belonged to. That way I can delegate to the correct
+        # eval method. Same for reward below. Should be able to largely mimic JokeDetectionRL
+        # hashing stuff.
+
+    def reward(self, conversation, assistant_response):
+        """
+        """
+        pass
+
 
 class TaskSequence(Task):
     """

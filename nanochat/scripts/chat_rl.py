@@ -23,16 +23,20 @@ import wandb
 import torch
 import torch.distributed as dist
 
-from nanochat.common import compute_init, compute_cleanup, print0, get_base_dir, DummyWandb
+from nanochat.common import compute_init, compute_cleanup, print0, get_base_dir, DummyWandb, \
+    autodetect_device_type
 from nanochat.checkpoint_manager import save_checkpoint, load_model
 from nanochat.engine import Engine
+from tasks.common import TaskMixture
 from tasks.gsm8k import GSM8K
+from tasks.jokes import JokeDetectionRL
 
 # RL hyperparameters
 run = "dummy" # wandb run name
 source = "sft" # mid|sft
 dtype = "bfloat16"
 device_batch_size = 8 # no forward pass will go above this to not OOM
+device_type = "" # cuda|cpu|mps (empty => autodetect)
 examples_per_step = 16 # in total and across all ranks (note: examples, not samples/completions!)
 num_samples = 16 # number of samples per example (/question)
 max_new_tokens = 256
@@ -54,10 +58,11 @@ user_config = {k: globals()[k] for k in config_keys} # will be useful for loggin
 # -----------------------------------------------------------------------------
 
 # Init compute/precision
-ddp, ddp_rank, ddp_local_rank, ddp_world_size, device = compute_init()
+device_type = autodetect_device_type() if device_type == "" else device_type
+ddp, ddp_rank, ddp_local_rank, ddp_world_size, device = compute_init(device_type)
 master_process = ddp_rank == 0 # this process will do logging, checkpointing etc.
 dtype = torch.float32 if dtype == 'float32' else torch.bfloat16
-autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=dtype)
+autocast_ctx = torch.amp.autocast(device_type=device_type, dtype=dtype)
 
 # wandb logging init
 use_dummy_wandb = run == "dummy" or not master_process
@@ -70,8 +75,14 @@ engine = Engine(model, tokenizer) # for sampling rollouts
 # -----------------------------------------------------------------------------
 # Rollout / sampling generator loop that yields batches of examples for training
 
-train_task = GSM8K(subset="main", split="train")
-val_task = GSM8K(subset="main", split="test")
+train_task = TaskMixture([
+    GSM8K(subset="main", split="train"),
+    JokeDetectionRL(split="train"),
+]) # 8K + ~61k = ~69k rows
+val_task = TaskMixture([
+    GSM8K(subset="main", split="test"),
+    JokeDetectionRL(split="test"),
+]) # 1.32K + ~8k = ~9 rows
 num_steps = (len(train_task) // examples_per_step) * num_epochs
 print0(f"Calculated number of steps: {num_steps}")
 
@@ -175,7 +186,7 @@ def run_gsm8k_eval(task, tokenizer, engine,
             generated_text = tokenizer.decode(generated_tokens)
             is_correct = task.evaluate(conversation, generated_text)
             outcomes.append({
-                "is_correct": is_correct
+                "is_correct": is_correct if isinstance(is_correct, int) else int(round(is_correct))
             })
         # A bit bloated because I wanted to do more complex logging at one point.
         record = {

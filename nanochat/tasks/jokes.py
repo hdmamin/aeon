@@ -168,12 +168,13 @@ class JokeDetectionRL(Jokes):
 
     joke_label = "joke"
     not_joke_label = "not a joke"
+    all_prefixes = sum(PREFIXES.values(), [])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.dataset.map(self._add_joke_label)
-        # Hash of messages list -> label str in ("joke", "not a joke").
+        # Hash of messages list -> label str in ("joke", "not a joke"). Must call before map.
         self.hash2label = {}
+        self.dataset.map(self._add_joke_label)
 
     def _add_joke_label(self, item: dict) -> dict:
         """Select either the joke or the unfunny_variant and add a label."""
@@ -182,13 +183,16 @@ class JokeDetectionRL(Jokes):
             item["label"] = self.joke_label
             item["messages"] = [
                 first_message,
-                {"role": "user", "content": item["messages"]["content"][1]}
+                {"role": "user", "content": item["messages"][1]["content"]}
             ]
         else:
             item["label"] = self.not_joke_label
+            content = item["messages"][0]["content"]
+            for prefix in self.all_prefixes:
+                content = content.removeprefix(prefix)
             item["messages"] = [
                 first_message,
-                {"role": "user", "content": item["messages"]["content"][0]}
+                {"role": "user", "content": content.strip()}
             ]
         
         # Realized evaluate doesn't expose the label key automatically, try exposing it a different
@@ -209,3 +213,11 @@ class JokeDetectionRL(Jokes):
             return max(0.1, float(label == self.joke_label))
         else:
             return 0
+
+    def reward(self, conversation: list[dict], assistant_response: str) -> float:
+        """Same as evaluate, jut provided for compatibility with chat_rl eval func.
+        
+        Returns 1 if correct, 0.1 if incorrect but a valid label is present, 0 if incorrect
+        and no valid label is present.
+        """
+        return self.evaluate(conversation, assistant_response)
