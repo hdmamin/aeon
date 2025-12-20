@@ -1,12 +1,10 @@
-import hashlib
-import json
 import random
 from string import ascii_letters
 from typing import Generator
 
 from datasets import load_dataset, Dataset
 
-from tasks.common import Task
+from tasks.common import Task, hash_messages
 
 
 SEED = 42
@@ -60,11 +58,6 @@ PREFIXES = {
 }
 
 REQUIRES_NEWLINE = set(ascii_letters + ".")
-
-
-def hash_messages(messages: list[dict[str, str]]) -> str:
-    message_str = json.dumps(messages)
-    return hashlib.sha256(message_str.encode()).hexdigest()
 
 
 class Jokes(Task):

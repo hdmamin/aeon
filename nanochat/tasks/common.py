@@ -5,7 +5,15 @@ metadata and often also evaluation criteria.
 Example tasks: MMLU, ARC-Easy, ARC-Challenge, GSM8K, HumanEval, SmolTalk.
 """
 
+import hashlib
+import json
 import random
+
+
+def hash_messages(messages: list[dict[str, str]]) -> str:
+    message_str = json.dumps(messages)
+    return hashlib.sha256(message_str.encode()).hexdigest()
+
 
 class Task:
     """
@@ -73,6 +81,18 @@ class TaskMixture(Task):
         rng.shuffle(self.index_map)
         # Note: this is not the most elegant or best solution, but it's ok for now
 
+        # Store this now so we use the right evaluate/reward method later.
+        self.hash2task = self._build_hash2task_map()
+
+    def _build_hash2task_map(self):
+        """Build a mapping from the hash of each `messages` list to the task it belongs to."""
+        hash2task = {}
+        for i, item in enumerate(self):
+            hashed = hash_messages(item["messages"]) 
+            task_idx = self.index_map[i][0]
+            hash2task[hashed] = self.tasks[task_idx]
+        return hash2task
+
     def num_examples(self):
         return self.num_conversations
 
@@ -86,18 +106,16 @@ class TaskMixture(Task):
         return self.tasks[task_idx][local_idx]
 
     def evaluate(self, conversation, assistant_response):
+        """Delegate to the appropriate task's evaluate method.
         """
-        """
-        pass
-        # TODO: think I init to construct a mapping from maybe some kind of hash of the conversation
-        # to the task obj it initially belonged to. That way I can delegate to the correct
-        # eval method. Same for reward below. Should be able to largely mimic JokeDetectionRL
-        # hashing stuff.
+        task = self.hash2task[hash_messages(conversation)]
+        return task.evaluate(conversation, assistant_response)
 
     def reward(self, conversation, assistant_response):
+        """Delegate to the appropriate task's reward method.
         """
-        """
-        pass
+        task = self.hash2task[hash_messages(conversation)]
+        return task.reward(conversation, assistant_response)
 
 
 class TaskSequence(Task):

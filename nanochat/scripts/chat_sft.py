@@ -119,7 +119,7 @@ def sft_data_generator(dataset, batch_size):
     batch = []
     while True:
         for i in range(ddp_rank, len(dataset), ddp_world_size):
-            doc = dataset[i]
+            doc, _ = dataset[i]
             ids, mask = tokenizer.render_conversation(doc)
             batch.append((ids, mask))
             if len(batch) == batch_size:
