@@ -9,6 +9,8 @@ import hashlib
 import json
 import random
 
+from tqdm.auto import tqdm
+
 
 def hash_messages(messages: list[dict[str, str]]) -> str:
     message_str = json.dumps(messages)
@@ -51,6 +53,9 @@ class Task:
 
     def __getitem__(self, index: int):
         assert isinstance(index, int), f"Index must be an integer, got {type(index)}"
+        if index >= len(self):
+            raise IndexError(f"Index {index} out of range for task with {len(self)} examples")
+
         physical_index = self.start + index * self.step
         conversation = self.get_example(physical_index)
         return conversation
@@ -87,7 +92,8 @@ class TaskMixture(Task):
     def _build_hash2task_map(self):
         """Build a mapping from the hash of each `messages` list to the task it belongs to."""
         hash2task = {}
-        for i, item in enumerate(self):
+        for i, item in tqdm(enumerate(self), total=self.num_conversations,
+                            desc="Building hash2task map"):
             hashed = hash_messages(item["messages"]) 
             task_idx = self.index_map[i][0]
             hash2task[hashed] = self.tasks[task_idx]
@@ -108,13 +114,13 @@ class TaskMixture(Task):
     def evaluate(self, conversation, assistant_response):
         """Delegate to the appropriate task's evaluate method.
         """
-        task = self.hash2task[hash_messages(conversation)]
+        task = self.hash2task[hash_messages(conversation["messages"])]
         return task.evaluate(conversation, assistant_response)
 
     def reward(self, conversation, assistant_response):
         """Delegate to the appropriate task's reward method.
         """
-        task = self.hash2task[hash_messages(conversation)]
+        task = self.hash2task[hash_messages(conversation["messages"])]
         return task.reward(conversation, assistant_response)
 
 
