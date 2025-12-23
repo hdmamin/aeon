@@ -66,7 +66,6 @@ python -m scripts.mid_train \
 # note that we lower the execution memory limit to 1MB to avoid warnings on smaller systems
 python -m scripts.chat_eval --source=mid --max-new-tokens=128 --max-problems=20
 
-# TODO hdm: left off here
 # SFT
 # hdm: removed num_iterations and eval_steps
 python -m scripts.chat_sft \
@@ -74,10 +73,10 @@ python -m scripts.chat_sft \
     --target_examples_per_step=4 \
     --eval_metrics_max_problems=16
 
-# # Chat CLI
-# # python -m scripts.chat_cli -p "Why is the sky blue?"
+# Chat CLI
+python -m scripts.chat_cli -p "Why is the sky blue?"
 
-# # Chat Web
-# # python -m scripts.chat_web
+# Chat Web
+python -m scripts.chat_web
 
-# python -m nanochat.report generate
+python -m nanochat.report generate
