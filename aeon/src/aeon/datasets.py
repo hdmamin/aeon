@@ -12,6 +12,7 @@ from aeon.secrets import SecretManager
 def save_dataset(
         df: pd.DataFrame, name: str, save_local: bool = True, upload_to_hub: bool = True,
         file_suffix: str = "pq", private: bool = False,
+        description: Optional[str] = None,
         infisical_api_key: Optional[str] = None, **hf_kwargs
     ) -> None:
     """Save a dataset to local file in {project_root}/data/datasets and/or create a 
@@ -22,6 +23,10 @@ def save_dataset(
     private : bool
         If True and upload_to_hub is True, the resulting huggingface dataset will be made private.
         Note that this will disable their builtin dataset viewer in the UI.
+    description : str or None
+        If provided, this will be added to the huggingface dataset and displayed in their dataset
+        hub. Basically a readme for the dataset. I suggest including at least a one line description
+        and url(s) pointing to the source of the data if applicable.
     hf_kwargs : any
         Forwarded to huggingface's add_collection_item method. E.g. exists_ok=True (though note,
         I realized this does not actually allow overwriting items, just determines whether an error
@@ -47,7 +52,16 @@ def save_dataset(
 
         repo_id = f"hmamin/{name}"
         dataset = Dataset.from_pandas(df)
+        if description:
+            dataset.info.description = description
         dataset.push_to_hub(repo_id)
+        if description:
+            hf_api.upload_file(
+                repo_id=repo_id,
+                repo_type="dataset",
+                path_in_repo="README.md",
+                content=description,
+            )
 
         hf_api.add_collection_item(
             collection_slug="hmamin/aeon",
