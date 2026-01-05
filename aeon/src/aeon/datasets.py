@@ -10,7 +10,7 @@ from aeon.secrets import SecretManager
 
 
 def save_dataset(
-        df: pd.DataFrame, name: str, save_local: bool = True, upload_to_hub: bool = True,
+        df: pd.DataFrame, name: str, upload_to_hub: bool = True,
         file_suffix: str = "pq", private: bool = False,
         description: Optional[str] = None,
         infisical_api_key: Optional[str] = None, **hf_kwargs
@@ -32,15 +32,18 @@ def save_dataset(
         I realized this does not actually allow overwriting items, just determines whether an error
         is raised)
     """
-    if save_local:
-        out_dir = config.DATA_DIR/f"datasets/{name}"
-        os.makedirs(out_dir, exist_ok=True)
-        if file_suffix == "pq":
-            df.to_parquet(out_dir/"df.pq")
-        elif file_suffix == "h5":
-            df.to_hdf(out_dir/"df.pq", key="df")
-        else:
-            raise ValueError(f"Unsupported file_suffix: {file_suffix!r}")
+    out_dir = config.DATA_DIR/f"datasets/{name}"
+    os.makedirs(out_dir, exist_ok=True)
+    if file_suffix == "pq":
+        df.to_parquet(out_dir/"df.pq")
+    elif file_suffix == "h5":
+        df.to_hdf(out_dir/"df.h5", key="df")
+    else:
+        raise ValueError(f"Unsupported file_suffix: {file_suffix!r}")
+
+    if description:
+        with open(out_dir/"README.md", "w") as f:
+            f.write(description)
 
     if upload_to_hub:
         secret_manager = SecretManager(
@@ -57,10 +60,10 @@ def save_dataset(
         dataset.push_to_hub(repo_id)
         if description:
             hf_api.upload_file(
+                path_or_fileobj=out_dir/"README.md",
                 repo_id=repo_id,
                 repo_type="dataset",
                 path_in_repo="README.md",
-                content=description,
             )
 
         hf_api.add_collection_item(
