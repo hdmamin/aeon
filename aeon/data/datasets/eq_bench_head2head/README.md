@@ -1,0 +1,1 @@
+LLM responses in situations designed to test emotional intelligence. From Sam Paech's eq-bench. Sampled head2head examples for GRPO, where the LLM being post-trained must guess from the role-playing LLMs'thought processes which one ended up writing a higher scoring response along some given dimension.
