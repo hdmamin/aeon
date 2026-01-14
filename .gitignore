@@ -210,7 +210,7 @@ __marimo__/
 *.swp
 
 _notes/
-aeon/data/**/*
+aeon/data/
 !aeon/data/**/README.md
 # Ignore .claude dirs in subdirectories but keep the one in project root because it has settings.
 **/.claude/
