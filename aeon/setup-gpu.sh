@@ -5,4 +5,4 @@ uv venv --seed
 source .venv/bin/activate
 uv sync --group gpu
 uv pip install ipykernel
-uv run python -m ipykernel install --user --name=aeon
+uv run python -m ipykernel install --prefix "$(pwd)/.jupyter" --user --name=aeon
