@@ -1,8 +1,9 @@
 # TODO: could mv to makefile or some new scripts dir
 # But this is a good start.
 sudo snap install astral-uv --classic
-uv venv --seed
-source .venv/bin/activate
+# python >=3.12 was causing unsloth errors. Create a separate env to avoid breaking cpu venv.
+uv venv .venv-gpu --python 3.11 --seed
+source .venv-gpu/bin/activate
 uv sync --group gpu
 
 # Create ipykernel. We store it in the cwd so it persists in lambda filesystem,
