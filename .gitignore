@@ -219,3 +219,5 @@ aeon/data/**
 !/.claude/**
 aeon/.jupyter
 notebooks/unsloth_compiled_cache/
+aeon/unsloth_compiled_cache/
+bin/
