@@ -1,6 +1,6 @@
 # TODO: could mv to makefile or some new scripts dir
 # But this is a good start.
-sudo snap install astral-uv --classic
+curl -LsSf https://astral.sh/uv/install.sh | sh
 # python >=3.12 was causing unsloth errors. Create a separate env to avoid breaking cpu venv.
 uv venv .venv-gpu --python 3.11 --seed
 source .venv-gpu/bin/activate
