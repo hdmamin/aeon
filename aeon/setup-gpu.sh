@@ -13,3 +13,6 @@ uv run --active python -m ipykernel install --prefix "$(pwd)/.jupyter" --name=ae
 mkdir -p ~/.local/share/jupyter/kernels
 ln -s "$(pwd)/.jupyter/share/jupyter/kernels/aeon" ~/.local/share/jupyter/kernels/aeon
 
+# Some additional git setup.
+git config --global user.email "harrisonmamin@gmail.com"
+git config --global user.name "harrison mamin"
