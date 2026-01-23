@@ -35,8 +35,11 @@ gpu = [
     "unsloth==2025.7.2",
     "unsloth-zoo==2025.7.4",
     "vllm==0.8.5.post1",
-    "transformers",
+    # tightly constrain this, unsloth/transformers coupling is very fragile
+    "transformers==4.54.1",
     "trl==0.19.1",
+    # uv resolves to 0.18.1 otherwise which causes errors when we start training.
+    "peft==0.17.1",
     "torchvision",
     "xformers",
     "bitsandbytes",
