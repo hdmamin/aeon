@@ -36,6 +36,7 @@ gpu = [
     "peft>=0.17.1,<0.18.0",
     "trl[vllm]>=0.19.1,<0.20.0",
     "transformers[torch]>=4.57.1,<4.58.0",
+    "bitsandbytes",
 ]
 
 [tool.setuptools.packages.find]
