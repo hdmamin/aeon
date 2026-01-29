@@ -36,7 +36,8 @@ gpu = [
     "peft>=0.17.1,<0.18.0",
     "trl[vllm]>=0.19.1,<0.20.0",
     "transformers[torch]>=4.57.1,<4.58.0",
-    "bitsandbytes",
+    "bitsandbytes>=0.49.1,<0.50.0",
+    "flash-attn>=2.8.3,<2.9.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -55,3 +56,7 @@ python_functions = ["test_*"]
 [tool.uv]
 index-url = "https://pypi.org/simple/"
 package = true
+
+[tools.uv.extra-build-dependencies]
+setuptools = "*"
+wheel = "*"

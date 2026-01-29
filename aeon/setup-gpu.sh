@@ -5,6 +5,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv venv .venv-gpu --python 3.11 --seed
 source .venv-gpu/bin/activate
 uv sync --active --group gpu
+uv pip install --no-build-isolation flash-attn
 
 # Create ipykernel. We store it in the cwd so it persists in lambda filesystem,
 # then symlink it so it's discoverable by jupyter.
