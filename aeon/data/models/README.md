@@ -1,12 +1,15 @@
 ---
 base_model: allenai/Olmo-3-7B-Instruct-SFT
-library_name: transformers
+library_name: peft
 model_name: models
 tags:
-- generated_from_trainer
-- trl
+- base_model:adapter:allenai/Olmo-3-7B-Instruct-SFT
 - grpo
+- lora
+- transformers
+- trl
 licence: license
+pipeline_tag: text-generation
 ---
 
 # Model Card for models
@@ -27,13 +30,14 @@ print(output["generated_text"])
 
 ## Training procedure
 
- 
+[<img src="https://raw.githubusercontent.com/wandb/assets/main/wandb-github-badge-28.svg" alt="Visualize in Weights & Biases" width="150" height="24"/>](https://wandb.ai/harrisonmamin-2026/huggingface/runs/i4ta6wqf) 
 
 
 This model was trained with GRPO, a method introduced in [DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models](https://huggingface.co/papers/2402.03300).
 
 ### Framework versions
 
+- PEFT 0.17.1
 - TRL: 0.19.1
 - Transformers: 4.57.1
 - Pytorch: 2.6.0
